@@ -22,14 +22,20 @@
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden">
 
+  <!-- LOGO SVG DATA STRING CONFIGURATION -->
+  <script>
+    // Official CPAS Spiral/Arrow Emblem embedded as an SVG Data URL
+    const LOGO_URL = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500'><rect x='0' y='0' width='300' height='500' fill='%23700028'/><rect x='300' y='0' width='200' height='500' fill='%23fcd8d0'/><path d='M200 180 C200 230 160 250 140 220 C120 180 180 120 230 140 C300 170 300 300 220 370 C140 440 40 370 35 250 C30 120 120 20 250 20 C380 20 480 120 480 250 C480 370 390 470 250 490 C120 510 30 420 30 250' fill='none' stroke='%23ffffff' stroke-width='38' stroke-linecap='round'/><path d='M250 490 C360 480 470 390 430 250 L480 270 M430 250 L400 310' fill='none' stroke='%23700028' stroke-width='38' stroke-linecap='round' stroke-linejoin='round'/></svg>";
+  </script>
+
   <!-- SHARED USER LOGIN OVERLAY (FULLSCREEN) -->
   <div id="auth-overlay" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
     <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
       
       <!-- Brand Logo Header -->
       <div class="text-center space-y-2">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold shadow-lg">
-          <i data-lucide="wrench" class="w-7 h-7"></i>
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center overflow-hidden shadow-lg p-1">
+          <img id="login-logo-img" src="https://placehold.co/100x100/1e293b/f59e0b?text=CPAS" alt="CPAS Logo" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://placehold.co/100x100/1e293b/f59e0b?text=CPAS'">
         </div>
         <h1 class="text-xl font-bold tracking-tight text-white">CPAS LESSINES</h1>
         <p class="text-xs text-slate-400 font-medium">Connexion Unique - Service Technique</p>
@@ -74,8 +80,8 @@
   <!-- HEADER -->
   <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold shadow-sm">
-        <i data-lucide="wrench" class="w-5 h-5"></i>
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center overflow-hidden shadow-sm p-0.5">
+        <img id="header-logo-img" src="https://placehold.co/100x100/1e293b/f59e0b?text=CPAS" alt="CPAS Logo" class="w-full h-full object-contain rounded-lg" onerror="this.src='https://placehold.co/100x100/1e293b/f59e0b?text=CPAS'">
       </div>
       <div>
         <div class="flex items-center space-x-2">
@@ -847,6 +853,12 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Set customized logo images
+      const loginLogo = document.getElementById('login-logo-img');
+      const headerLogo = document.getElementById('header-logo-img');
+      if (loginLogo && typeof LOGO_URL !== 'undefined') loginLogo.src = LOGO_URL;
+      if (headerLogo && typeof LOGO_URL !== 'undefined') headerLogo.src = LOGO_URL;
+
       seedMasterCredentials();
       checkExistingSession();
 
@@ -864,4 +876,4 @@
     });
   </script>
 </body>
-</html>
+</html
