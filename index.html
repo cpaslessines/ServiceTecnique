@@ -31,8 +31,8 @@
       <div>
         <div class="flex items-center space-x-2">
           <h1 id="app-company-name" class="font-bold text-sm tracking-tight text-slate-100">CPAS LESSINES</h1>
-          <span id="sync-badge" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>Online
+          <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1 animate-pulse"></span>Connexion...
           </span>
         </div>
         <p id="app-subtitle" class="text-[11px] text-slate-400 font-medium">Service Technique</p>
@@ -46,6 +46,17 @@
       </button>
     </div>
   </header>
+
+  <!-- DIAGNOSTIC / ERROR BANNER -->
+  <div id="diagnostic-banner" class="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 text-xs flex items-center justify-between text-amber-300">
+    <div class="flex items-center space-x-2">
+      <i data-lucide="info" class="w-4 h-4 text-amber-400 shrink-0"></i>
+      <span id="diagnostic-text" class="font-medium">Vérification du statut de la base de données...</span>
+    </div>
+    <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-amber-400 hover:text-white">
+      <i data-lucide="x" class="w-4 h-4"></i>
+    </button>
+  </div>
 
   <!-- MAIN APP CONTAINER -->
   <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6 pb-24">
@@ -338,7 +349,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Direct root collection 'tasks' to avoid nested path rule blocks
+    // Direct root collection 'tasks'
     const tasksCollection = collection(db, 'tasks');
 
     let allIssues = [];
@@ -458,27 +469,43 @@
       4: { label: 'Niveau 4: Décapage complet', color: 'bg-red-500/10 text-red-400 border-red-500/20', tools: ['Décapant', 'Enduit de lissage', 'Papier à Poncer', 'Primaire + Peinture'] }
     };
 
-    window.updateSyncBadge = function(isOnline = true, text = "Cloud Live") {
+    window.updateSyncBadge = function(status, text) {
       const badge = document.getElementById('sync-badge');
-      if (badge) {
-        badge.className = "inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+      const diagBanner = document.getElementById('diagnostic-banner');
+      const diagText = document.getElementById('diagnostic-text');
+      
+      if (!badge) return;
+
+      if (status === 'online') {
+        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
         badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>${text}`;
+        diagText.textContent = "✅ Base de données Firebase connectée en temps réel ! Les modifications apparaissent instantanément sur tous les appareils.";
+        diagBanner.className = "bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-2.5 text-xs flex items-center justify-between text-emerald-300";
+      } else if (status === 'error') {
+        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1"></span>${text}`;
+        diagText.textContent = `❌ ERREUR FIREBASE : ${text}. Les Règles Firestore bloquent l'accès.`;
+        diagBanner.className = "bg-red-500/10 border-b border-red-500/20 px-4 py-2.5 text-xs flex items-center justify-between text-red-300";
+      } else {
+        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1 animate-pulse"></span>${text}`;
       }
     };
 
     function initFirebaseSync() {
       try {
-        window.updateSyncBadge(true, "Cloud Sync Active");
+        window.updateSyncBadge('pending', 'Connexion...');
 
-        // Listen in real-time to top-level 'tasks' collection
+        // Realtime listener
         onSnapshot(tasksCollection, (snapshot) => {
+          window.updateSyncBadge('online', 'Cloud En Direct');
+          
           const cloudIssues = [];
           snapshot.forEach((docSnap) => {
             cloudIssues.push(docSnap.data());
           });
 
-          // Seed defaults if empty
-          if (cloudIssues.length === 0 && snapshot.metadata.fromCache === false) {
+          if (cloudIssues.length === 0 && !snapshot.metadata.fromCache) {
             defaultIssues.forEach(async (issue) => {
               const docRef = doc(db, 'tasks', issue.id);
               await setDoc(docRef, { ...issue, updatedAt: Date.now() });
@@ -491,11 +518,16 @@
           window.renderIssues();
         }, (error) => {
           console.error("Firestore sync error:", error);
-          window.updateSyncBadge(false, "Erro Permissões Firebase");
+          if (error.code === 'permission-denied') {
+            window.updateSyncBadge('error', 'Accès Refusé (Règles Firestore)');
+          } else {
+            window.updateSyncBadge('error', error.message || 'Erreur Connexion');
+          }
         });
 
       } catch (err) {
         console.error("Firestore init error:", err);
+        window.updateSyncBadge('error', 'Erreur d\'Initialisation');
       }
     }
 
