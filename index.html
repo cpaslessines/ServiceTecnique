@@ -25,7 +25,6 @@
       background-position: center;
       background-repeat: no-repeat;
     }
-    /* Ocultar scrollbar sem perder funcionalidade */
     .scrollbar-none::-webkit-scrollbar {
       display: none;
     }
@@ -37,7 +36,7 @@
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden antialiased">
 
-  <!-- SHARED USER LOGIN OVERLAY (FULLSCREEN & RESPONSIVE) -->
+  <!-- SHARED USER LOGIN OVERLAY -->
   <div id="auth-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
     <div class="max-w-md w-full bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
       
@@ -83,7 +82,7 @@
     </div>
   </div>
 
-  <!-- HEADER RESPONSIVO -->
+  <!-- HEADER -->
   <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-3">
       <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm p-1 shrink-0">
@@ -123,10 +122,10 @@
     </button>
   </div>
 
-  <!-- MAIN APP CONTAINER ADAPTÁVEL -->
+  <!-- MAIN APP CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 space-y-6 pb-24">
 
-    <!-- BARRA DE PESQUISA -->
+    <!-- SEARCH SECTION -->
     <div class="relative max-w-2xl mx-auto md:mx-0">
       <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
         <i data-lucide="search" class="w-4 h-4"></i>
@@ -135,7 +134,7 @@
         class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors shadow-sm">
     </div>
 
-    <!-- CATEGORIES FILTER CONTAINER & MANAGE BUTTON -->
+    <!-- CATEGORIES FILTER -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto">
         <!-- Preenchido dinamicamente -->
@@ -146,31 +145,26 @@
       </button>
     </div>
 
-    <!-- ISSUES GRID RESPONSIVA (1 COL MÓVEL, 2 TAB, 3/4 PC) -->
+    <!-- ISSUES GRID -->
     <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <!-- Populated dynamically -->
     </div>
 
   </main>
 
-  <!-- DETAIL DRAWER / MODAL (MODAL NO PC, BOTTOM-SHEET EM SMARTPHONES) -->
+  <!-- DETAIL DRAWER / MODAL -->
   <div id="detail-drawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex justify-end">
     <div id="drawer-content" class="bg-slate-900 border-t sm:border-t-0 sm:border-l border-slate-800 w-full sm:max-w-md md:max-w-lg h-[90vh] sm:h-full mt-auto sm:mt-0 rounded-t-3xl sm:rounded-none flex flex-col transform translate-y-full sm:translate-y-0 sm:translate-x-full transition-transform duration-300 shadow-2xl">
       
-      <!-- Drawer Header -->
+      <!-- Drawer Header (SEM O BOTÃO DE APAGAR) -->
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2">
           <span id="modal-category" class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20"></span>
           <span id="modal-time" class="text-xs text-slate-400 flex items-center"></span>
         </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="deleteCurrentIssue()" class="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors" title="Supprimer cette tâche">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-          </button>
-          <button onclick="closeDetailModal()" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
+        <button onclick="closeDetailModal()" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
       </div>
 
       <!-- Drawer Scrollable Body -->
@@ -216,11 +210,20 @@
             <i data-lucide="chevron-right" class="w-4 h-4"></i>
           </button>
         </div>
+
+        <!-- BOTÃO DE APAGAR SEGURO (NO RODAPÉ DOS DETALHES) -->
+        <div class="pt-6 border-t border-slate-800/80">
+          <button onclick="deleteCurrentIssue()" class="w-full py-3 px-4 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-semibold text-xs flex items-center justify-center space-x-2 transition-all active:scale-95">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>Supprimer cette tâche</span>
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
 
-  <!-- INSTRUCTIONS MODAL RESPONSIVO -->
+  <!-- INSTRUCTIONS MODAL -->
   <div id="instructions-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
@@ -240,7 +243,7 @@
     </div>
   </div>
 
-  <!-- ADD NEW ISSUE MODAL RESPONSIVO -->
+  <!-- ADD NEW ISSUE MODAL -->
   <div id="add-issue-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
