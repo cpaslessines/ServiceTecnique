@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPAS LESSINES - Service Technique</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #020617;
+      color: #f8fafc;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden">
+
+  <!-- HEADER -->
+  <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold shadow-sm">
+        <i data-lucide="wrench" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 id="app-company-name" class="font-bold text-sm tracking-tight text-slate-100">CPAS LESSINES</h1>
+          <span id="sync-badge" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>Online
+          </span>
+        </div>
+        <p id="app-subtitle" class="text-[11px] text-slate-400 font-medium">Service Technique</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center space-x-2">
+      <button onclick="openAddIssueModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-lg shadow-amber-500/20 transition-all active:scale-95">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        <span class="hidden sm:inline">Nouvelle Tâche</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6 pb-24">
+
+    <!-- SEARCH & ROOM EVALUATION SECTION -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Search -->
+      <div class="md:col-span-2 relative">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <i data-lucide="search" class="w-4 h-4"></i>
+        </div>
+        <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, un équipement..." 
+          class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors shadow-sm">
+      </div>
+
+      <!-- Room Number & Evaluation Shortcut -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-2.5">
+          <div class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-amber-400">
+            <i data-lucide="door-closed" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block font-medium">Chambre / Bureau</span>
+            <input type="text" id="room-number" placeholder="Ex: 104" oninput="saveRoomEvaluation()" class="bg-transparent text-xs font-bold text-slate-100 focus:outline-none w-20">
+          </div>
+        </div>
+        <button onclick="document.getElementById('paint-eval-section').scrollIntoView({behavior: 'smooth'})" class="text-[10px] bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-300 px-2.5 py-1.5 rounded-xl font-medium transition-colors">
+          Diagnostic
+        </button>
+      </div>
+    </div>
+
+    <!-- CATEGORIES FILTER -->
+    <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+      <button onclick="filterCategory('todos')" class="cat-btn bg-amber-500 text-slate-950 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap shadow-md transition-all">Tous</button>
+      <button onclick="filterCategory('plomberie')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Plomberie</button>
+      <button onclick="filterCategory('electrique')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Électrique</button>
+      <button onclick="filterCategory('mobilier')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Mobilier</button>
+      <button onclick="filterCategory('peinture')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Peinture & Murs</button>
+      <button onclick="filterCategory('tv')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">TV & Multimédia</button>
+      <button onclick="filterCategory('serrurerie')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Serrurerie</button>
+    </div>
+
+    <!-- ISSUES GRID -->
+    <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      <!-- Populated dynamically -->
+    </div>
+
+    <!-- PAINT & ROOM EVALUATION SECTION -->
+    <div id="paint-eval-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <i data-lucide="paint-bucket" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-xs text-slate-100">Évaluation Rapide Murs & Peinture</h2>
+            <p class="text-[10px] text-slate-400">Sélectionnez le niveau de détérioration pour connaitre le matériel requis</p>
+          </div>
+        </div>
+        <div id="paint-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          Niveau 1: Bon état
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <button onclick="updatePaintRating(1)" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-left transition-all group">
+          <span class="block text-[10px] text-slate-400 font-medium">Niveau 1</span>
+          <span class="text-xs font-bold text-slate-200 group-hover:text-amber-400">Impeccable</span>
+        </button>
+        <button onclick="updatePaintRating(2)" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-left transition-all group">
+          <span class="block text-[10px] text-slate-400 font-medium">Niveau 2</span>
+          <span class="text-xs font-bold text-slate-200 group-hover:text-amber-400">Légères traces</span>
+        </button>
+        <button onclick="updatePaintRating(3)" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-left transition-all group">
+          <span class="block text-[10px] text-slate-400 font-medium">Niveau 3</span>
+          <span class="text-xs font-bold text-slate-200 group-hover:text-amber-400">Fissures / Trous</span>
+        </button>
+        <button onclick="updatePaintRating(4)" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-left transition-all group">
+          <span class="block text-[10px] text-slate-400 font-medium">Niveau 4</span>
+          <span class="text-xs font-bold text-slate-200 group-hover:text-amber-400">Détérioré / Humidité</span>
+        </button>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+        <span class="text-[10px] text-slate-400 font-medium mr-2">Matériel conseillé :</span>
+        <div id="paint-materials-list" class="flex flex-wrap gap-1.5">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- DETAIL DRAWER / MODAL -->
+  <div id="detail-drawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex justify-end">
+    <div id="drawer-content" class="bg-slate-900 border-l border-slate-800 w-full max-w-lg h-full flex flex-col transform translate-y-full transition-transform duration-300 shadow-2xl">
+      <!-- Drawer Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span id="modal-category" class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20"></span>
+          <span id="modal-time" class="text-xs text-slate-400 flex items-center"></span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="deleteCurrentIssue()" class="p-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors" title="Supprimer cette tâche">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+          <button onclick="closeDetailModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drawer Scrollable Body -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+        <div>
+          <h2 id="modal-title" class="font-bold text-base text-slate-100 leading-snug"></h2>
+        </div>
+
+        <!-- Safety Warning Box -->
+        <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start space-x-3 text-amber-400">
+          <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
+          <div class="text-xs leading-relaxed">
+            <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
+            <p id="modal-safety" class="text-slate-300"></p>
+          </div>
+        </div>
+
+        <!-- Electrical Warning Alert if applicable -->
+        <div id="electrical-warning-box" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start space-x-3 text-red-400">
+          <i data-lucide="zap" class="w-4 h-4 mt-0.5 shrink-0"></i>
+          <div class="text-xs leading-relaxed">
+            <span class="font-bold block mb-0.5">Sécurité Électrique Obligatoire</span>
+            <p class="text-slate-300">Coupez impérativement le disjoncteur avant toute manipulation sur les fils ou prises.</p>
+          </div>
+        </div>
+
+        <!-- Materials Section -->
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider flex items-center">
+              <i data-lucide="briefcase" class="w-3.5 h-3.5 mr-1.5 text-amber-400"></i> Matériel Requis
+            </h3>
+            <button onclick="toggleEditMaterials()" class="text-[10px] bg-slate-950 border border-slate-800 hover:bg-slate-800 text-amber-400 px-2 py-1 rounded-lg font-medium transition-colors flex items-center space-x-1">
+              <i data-lucide="edit-3" class="w-3 h-3"></i>
+              <span>Modifier</span>
+            </button>
+          </div>
+          
+          <div id="materials-display-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="modal-materials">
+            <!-- Populated -->
+          </div>
+
+          <!-- Materials Edit View -->
+          <div id="materials-edit-container" class="hidden space-y-2 p-3 bg-slate-950 border border-slate-800 rounded-2xl">
+            <p class="text-[10px] text-slate-400">Séparez les outils par des virgules :</p>
+            <textarea id="edit-materials-input" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+            <div class="flex justify-end space-x-2 pt-1">
+              <button onclick="resetMaterialsOriginal()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-lg text-[10px] font-medium">Réinitialiser</button>
+              <button onclick="saveMaterialsEdit()" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-bold">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instructions Button/Shortcut -->
+        <div class="pt-2">
+          <button onclick="openInstructionsModal()" class="w-full py-3 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-between transition-all">
+            <span class="flex items-center space-x-2">
+              <i data-lucide="list-checks" class="w-4 h-4"></i>
+              <span>Consulter la Procédure d'Intervention Pas-à-Pas</span>
+            </span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTRUCTIONS MODAL -->
+  <div id="instructions-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-xs text-slate-100 flex items-center">
+          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-amber-400"></i> Procédure d'Intervention
+        </h3>
+        <div class="flex items-center space-x-2">
+          <button onclick="toggleEditSteps()" class="text-[10px] bg-slate-950 border border-slate-800 hover:bg-slate-800 text-amber-400 px-2 py-1 rounded-lg font-medium transition-colors flex items-center space-x-1">
+            <i data-lucide="edit-3" class="w-3 h-3"></i>
+            <span>Modifier</span>
+          </button>
+          <button onclick="closeInstructionsModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <div id="steps-display-container">
+          <ol id="instructions-steps-list" class="space-y-2.5 text-xs text-slate-300 list-decimal pl-4">
+            <!-- Populated -->
+          </ol>
+        </div>
+
+        <div id="steps-edit-container" class="hidden space-y-2">
+          <p class="text-[10px] text-slate-400">Chaque ligne correspond à une étape distincte :</p>
+          <textarea id="edit-steps-textarea" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+          <div class="flex justify-end space-x-2 pt-1">
+            <button onclick="resetStepsOriginal()" class="px-2.5 py-1 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-lg text-[10px] font-medium">Réinitialiser</button>
+            <button onclick="saveStepsEdit()" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-bold">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD NEW ISSUE MODAL -->
+  <div id="add-issue-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-xs text-slate-100 flex items-center">
+          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-amber-400"></i> Ajouter une Nouvelle Tâche / Panne
+        </h3>
+        <button onclick="closeAddIssueModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="add-issue-form" onsubmit="handleNewIssueSubmit(event)" class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Titre de la Panne / Tâche</label>
+          <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Catégorie</label>
+            <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="plomberie">Plomberie</option>
+              <option value="electrique">Électrique</option>
+              <option value="mobilier">Mobilier</option>
+              <option value="peinture">Peinture & Murs</option>
+              <option value="tv">TV & Multimédia</option>
+              <option value="serrurerie">Serrurerie</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Difficulté</label>
+            <select id="custom-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="Facile">Facile</option>
+              <option value="Moyenne">Moyenne</option>
+              <option value="Difficile">Difficile</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Matériel Requis (séparé par des virgules)</label>
+          <input type="text" id="custom-materials" required placeholder="Ex: Tournevis, Ampoule LED E27, Escabeau" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Étapes de l'Intervention (une par ligne)</label>
+          <textarea id="custom-steps" rows="4" required placeholder="Étape 1&#10;Étape 2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeAddIssueModal()" class="px-4 py-2 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
+          <button type="submit" class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20">Créer la Tâche</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FIREBASE & CORE LOGIC SCRIPT -->
+  <script>
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'cpas-lessines-technical-service-v9';
+    
+    // Cross-Device & Multi-Tab Realtime Synchronization Engine via BroadcastChannel and Storage Events
+    let allIssues = [];
+    let currentCategory = 'todos';
+    let currentIssueId = null;
+
+    let editedMaterials = JSON.parse(localStorage.getItem('fixtech_edited_materials')) || {};
+    let editedSteps = JSON.parse(localStorage.getItem('fixtech_edited_steps')) || {};
+
+    const paintEvaluationConfig = {
+      1: { label: 'Niveau 1: Bon état', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', tools: ['Chiffon microfibre', 'Nettoyant doux'] },
+      2: { label: 'Niveau 2: Soin léger', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20', tools: ['Papier à Poncer', 'Pinceau retouche', 'Peinture de finition'] },
+      3: { label: 'Niveau 3: Fissures/Trous', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20', tools: ['Enduit de rebouchage', 'Couteau à spatule', 'Papier à Poncer', 'Primaire'] },
+      4: { label: 'Niveau 4: Décapage complet', color: 'bg-red-500/10 text-red-400 border-red-500/20', tools: ['Décapant', 'Enduit de lissage', 'Papier à Poncer', 'Primaire + Peinture'] }
+    };
+
+    window.updateSyncBadge = function(isOnline = true) {
+      const badge = document.getElementById('sync-badge');
+      if (badge) {
+        badge.className = "inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>Synchronisé`;
+      }
+    };
+
+    // Broadcast channel for instant cross-tab / cross-device messaging
+    const syncChannel = new BroadcastChannel('cpas_lessines_sync_channel');
+    syncChannel.onmessage = (event) => {
+      if (event.data && event.data.type === 'STATE_UPDATED') {
+        window.loadAllIssuesFromStorage();
+        window.renderIssues();
+      }
+    };
+
+    window.broadcastStateChange = function() {
+      try {
+        syncChannel.postMessage({ type: 'STATE_UPDATED', timestamp: Date.now() });
+      } catch(e) {}
+    };
+
+    window.loadAllIssuesFromStorage = function() {
+      const defaultIssues = [
+        {
+          id: 'plomb-1',
+          category: 'plomberie',
+          title: 'Fuite de Robinet / Lave-mains',
+          time: '15-30 min',
+          difficulty: 'Facile',
+          safety: 'Coupez l\'eau au robinet d\'arrêt sous le lavabo avant d\'intervenir.',
+          materials: ['Chiffon microfibre', 'Clé anglaise / Clé à molette', 'Joints toriques de rechange', 'Ruban Téflon'],
+          steps: [
+            'Fermez les robinets d\'arrivée d\'eau chaude et froide.',
+            'Démontez le mousseur/brise-jet pour vérifier s\'il est entartré.',
+            'Remplacez le joint défectueux ou appliquez du ruban Téflon sur le filetage.',
+            'Resserrez sans forcer puis rouvrez l\'eau pour tester l\'étanchéité.'
+          ]
+        },
+        {
+          id: 'plomb-2',
+          category: 'plomberie',
+          title: 'WC Bouché / Écoulement Lent',
+          time: '10-20 min',
+          difficulty: 'Facile',
+          safety: 'Utilisez des gants étanches et des lunettes de protection.',
+          materials: ['Déboucheur à ventouse', 'Furet de débouchage', 'Gants de protection', 'Seau d\'eau chaude'],
+          steps: [
+            'Placez la ventouse sur la cuvette et effectuez des mouvements de va-et-vient énergiques.',
+            'Si l\'eau ne s\'évacue pas, introduisez le furet dans le siphon en tournant la manivelle.',
+            'Versez un seau d\'eau chaude d\'un coup sec pour rincer la canalisation.'
+          ]
+        },
+        {
+          id: 'elec-1',
+          category: 'electrique',
+          title: 'Prise / Disjoncteur Réarmé qui Saute',
+          time: '10-15 min',
+          difficulty: 'Moyenne',
+          safety: 'ATTENTION: Coupez le disjoncteur général avant de toucher au boîtier.',
+          materials: ['Tournevis isolé VDE', 'Multimètre / Testeur de tension', 'Lampe frontale'],
+          steps: [
+            'Identifiez le disjoncteur divisionnaire tombé sur le coffret électrique.',
+            'Débranchez tous les appareils reliés à cette ligne électrique.',
+            'Réarmez le disjoncteur. S\'il reste en haut, rebranchez un à un les appareils.',
+            'Si le disjoncteur saute instantanément sans appareil, ouvrez la prise pour vérifier les fils.'
+          ]
+        },
+        {
+          id: 'mob-1',
+          category: 'mobilier',
+          title: 'Charnière de Porte d\'Armoire Desserrée',
+          time: '5-10 min',
+          difficulty: 'Facile',
+          safety: 'Soutenez la porte lors du réglage pour éviter d\'endommager le bois.',
+          materials: ['Tournevis cruciforme (PZ2)', 'Pâte à bois / Tourillons'],
+          steps: [
+            'Resserrez la vis de fixation arrière de la charnière.',
+            'Ajustez la vis de réglage latérale pour aligner parfaitement la porte.',
+            'Si le trou dans le panneau est abîmé, collez un tourillon de bois puis revissez.'
+          ]
+        },
+        {
+          id: 'pin-1',
+          category: 'peinture',
+          title: 'Peinture Écaillée / Fissures sur le Mur',
+          time: '45-60 min',
+          difficulty: 'Moyenne',
+          safety: 'Portez un masque antipoussière lors du ponçage.',
+          materials: ['Couteau à reboucher / Spatule', 'Enduit de rebouchage', 'Papier à Poncer', 'Primaire d\'accrochage', 'Peinture de finition'],
+          steps: [
+            'Grattez la peinture écaillée avec le couteau à reboucher.',
+            'Appliquez l\'enduit de rebouchage dans les fissures/trous.',
+            'Laissez sécher complètement (environ 30 à 45 min).',
+            'Poncez avec le papier à poncer fin jusqu\'à obtenir une surface lisse.',
+            'Appliquez 1 couche de primaire puis 2 couches de peinture.'
+          ]
+        },
+        {
+          id: 'tv-1',
+          category: 'tv',
+          title: 'Problème de Signal TV / Décodeur Coincé',
+          time: '15 min',
+          difficulty: 'Facile',
+          safety: 'Débranchez les câbles d\'alimentation avant toute vérification.',
+          materials: ['Télécommande d\'origine', 'Câble HDMI de rechange', 'Piles neuves (AAA/AA)'],
+          steps: [
+            'Vérifiez si la TV est réglée sur la bonne source d\'entrée (HDMI 1, HDMI 2).',
+            'Débranchez le décodeur/TV du secteur pendant 30 secondes puis rebranchez.',
+            'Contrôler le branchement du câble HDMI et du câble d\'antenne.',
+            'Remplacez les piles de la télécommande si elle ne répond plus.'
+          ]
+        },
+        {
+          id: 'ser-1',
+          category: 'serrurerie',
+          title: 'Porte qui Frotte au Sol / Barillet Grippé',
+          time: '20 min',
+          difficulty: 'Facile',
+          safety: 'Attention aux pincements de doigts lors du réglage.',
+          materials: ['Clé Allen', 'Spray Lubrifiant PTFE / Graphite', 'Rondelles de repincage'],
+          steps: [
+            'Pour la serrure/barillet dur : injectez du spray graphite ou lubrifiant PTFE.',
+            'Pour la porte qui frotte : vérifiez le serrage des vis des paumelles.',
+            'Si la porte s\'affaisse, insérez une rondelle de repincage sur l\'axe de chaque paumelle.'
+          ]
+        }
+      ];
+
+      const customIssues = JSON.parse(localStorage.getItem('fixtech_custom_issues')) || [];
+      const updatedDefaults = JSON.parse(localStorage.getItem('fixtech_updated_defaults')) || {};
+      const deletedIssues = JSON.parse(localStorage.getItem('fixtech_deleted_issues')) || [];
+
+      const mergedDefaults = defaultIssues.map(issue => {
+        let merged = { ...issue };
+        if (updatedDefaults[issue.id]) merged = { ...merged, ...updatedDefaults[issue.id] };
+        if (editedMaterials[issue.id]) merged.materials = editedMaterials[issue.id];
+        if (editedSteps[issue.id]) merged.steps = editedSteps[issue.id];
+        return merged;
+      }).filter(issue => !deletedIssues.includes(issue.id));
+
+      const mergedCustom = customIssues.filter(item => !deletedIssues.includes(item.id)).map(issue => {
+        let merged = { ...issue };
+        if (editedMaterials[issue.id]) merged.materials = editedMaterials[issue.id];
+        if (editedSteps[issue.id]) merged.steps = editedSteps[issue.id];
+        return merged;
+      });
+
+      allIssues = [...mergedDefaults, ...mergedCustom];
+      window.renderIssues();
+    };
+
+    window.renderIssues = function(filterText = '') {
+      const container = document.getElementById('issues-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const filtered = allIssues.filter(issue => {
+        const matchCategory = currentCategory === 'todos' || issue.category === currentCategory;
+        const activeMat = issue.materials || [];
+        const matchText = !filterText || 
+          issue.title.toLowerCase().includes(filterText) ||
+          activeMat.some(m => m.toLowerCase().includes(filterText));
+        return matchCategory && matchText;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-slate-500 text-xs col-span-full">
+            Aucun problème trouvé.
+          </div>`;
+        return;
+      }
+
+      filtered.forEach(issue => {
+        const activeMat = issue.materials || [];
+        const formattedDate = issue.updatedAt ? new Date(issue.updatedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:border-slate-700 transition-all cursor-pointer active:scale-[0.99] shadow-md flex flex-col justify-between";
+        card.onclick = () => window.openDetailModal(issue.id);
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                ${issue.category}
+              </span>
+              <span class="text-[10px] text-slate-400 font-medium">
+                ${issue.difficulty || 'Facile'}
+              </span>
+            </div>
+            <h3 class="font-bold text-xs text-slate-100 mb-2.5 leading-snug">${issue.title}</h3>
+            <div class="flex flex-wrap gap-1 mb-2">
+              ${activeMat.slice(0, 3).map(m => `
+                <span class="text-[10px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded-md border border-slate-800/80">
+                  ${m}
+                </span>
+              `).join('')}
+              ${activeMat.length > 3 ? `<span class="text-[10px] text-slate-500 self-center">+${activeMat.length - 3}</span>` : ''}
+            </div>
+          </div>
+          ${formattedDate ? `
+            <div class="pt-2.5 border-t border-slate-800/60 flex items-center justify-end text-[9px] text-slate-500 space-x-1">
+              <i data-lucide="clock" class="w-2.5 h-2.5"></i>
+              <span>Modifié: ${formattedDate}</span>
+            </div>
+          ` : ''}
+        `;
+        container.appendChild(card);
+      });
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    };
+
+    window.filterCategory = function(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-amber-500', 'text-slate-950', 'shadow-md');
+        btn.classList.add('bg-slate-900', 'text-slate-400', 'border', 'border-slate-800');
+      });
+      event.currentTarget.classList.remove('bg-slate-900', 'text-slate-400', 'border', 'border-slate-800');
+      event.currentTarget.classList.add('bg-amber-500', 'text-slate-950', 'shadow-md');
+      window.renderIssues();
+    };
+
+    window.openDetailModal = function(id) {
+      currentIssueId = id;
+      const issue = allIssues.find(i => i.id === id);
+      if (!issue) return;
+
+      document.getElementById('modal-category').textContent = issue.category;
+      
+      const formattedDate = issue.updatedAt ? new Date(issue.updatedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+      document.getElementById('modal-time').innerHTML = `
+        <i data-lucide="clock" class="w-3 h-3 mr-1"></i> ${issue.time || '15 min'}
+        ${formattedDate ? `<span class="ml-2 text-slate-500 font-normal">(${formattedDate})</span>` : ''}
+      `;
+      document.getElementById('modal-title').textContent = issue.title;
+      document.getElementById('modal-safety').textContent = issue.safety || 'Attention lors de l\'intervention.';
+
+      const elecWarning = document.getElementById('electrical-warning-box');
+      if (elecWarning) {
+        if (issue.category.toLowerCase() === 'electrique' || issue.category.toLowerCase() === 'électrique') {
+          elecWarning.classList.remove('hidden');
+        } else {
+          elecWarning.classList.add('hidden');
+        }
+      }
+
+      window.renderModalMaterials(issue);
+      window.renderModalSteps(issue);
+
+      document.getElementById('materials-display-container').classList.remove('hidden');
+      document.getElementById('materials-edit-container').classList.add('hidden');
+
+      const drawer = document.getElementById('detail-drawer');
+      const content = document.getElementById('drawer-content');
+      
+      drawer.classList.remove('hidden');
+      setTimeout(() => {
+        content.classList.remove('translate-y-full');
+      }, 10);
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    };
+
+    window.renderModalMaterials = function(issue) {
+      const activeMaterials = editedMaterials[issue.id] || issue.materials || [];
+      const materialsContainer = document.getElementById('materials-display-container');
+      materialsContainer.innerHTML = activeMaterials.map(mat => `
+        <label class="flex items-center space-x-2.5 p-2 rounded-xl bg-slate-950 border border-slate-800/80 cursor-pointer active:bg-slate-800">
+          <input type="checkbox" class="rounded accent-amber-500 w-4 h-4 bg-slate-900 border-slate-700">
+          <span class="text-xs text-slate-200">${mat}</span>
+        </label>
+      `).join('');
+    };
+
+    window.renderModalSteps = function(issue) {
+      const activeSteps = editedSteps[issue.id] || issue.steps || [];
+      const stepsContainer = document.getElementById('instructions-steps-list');
+      stepsContainer.innerHTML = activeSteps.map(step => `
+        <li class="p-2.5 rounded-lg bg-slate-950 border border-slate-800/60 leading-relaxed text-xs">${step}</li>
+      `).join('');
+    };
+
+    window.closeDetailModal = function() {
+      const content = document.getElementById('drawer-content');
+      content.classList.add('translate-y-full');
+      setTimeout(() => {
+        document.getElementById('detail-drawer').classList.add('hidden');
+      }, 300);
+    };
+
+    window.toggleEditMaterials = function() {
+      const display = document.getElementById('materials-display-container');
+      const edit = document.getElementById('materials-edit-container');
+      const issue = allIssues.find(i => i.id === currentIssueId);
+      
+      if (edit.classList.contains('hidden')) {
+        const activeMat = editedMaterials[currentIssueId] || (issue ? issue.materials : []);
+        document.getElementById('edit-materials-input').value = activeMat.join(', ');
+        display.classList.add('hidden');
+        edit.classList.remove('hidden');
+      } else {
+        display.classList.remove('hidden');
+        edit.classList.add('hidden');
+      }
+    };
+
+    window.saveMaterialsEdit = function() {
+      const issue = allIssues.find(i => i.id === currentIssueId);
+      const val = document.getElementById('edit-materials-input').value.trim();
+      if (!val) return;
+
+      const newArray = val.split(',').map(s => s.trim()).filter(Boolean);
+      const now = Date.now();
+      
+      editedMaterials[currentIssueId] = newArray;
+      localStorage.setItem('fixtech_edited_materials', JSON.stringify(editedMaterials));
+
+      if (issue) {
+        issue.materials = newArray;
+        issue.updatedAt = now;
+        
+        if (issue.id.startsWith('custom-')) {
+          const customLocal = JSON.parse(localStorage.getItem('fixtech_custom_issues')) || [];
+          const idx = customLocal.findIndex(item => item.id === issue.id);
+          if (idx !== -1) {
+            customLocal[idx].materials = newArray;
+            customLocal[idx].updatedAt = now;
+            localStorage.setItem('fixtech_custom_issues', JSON.stringify(customLocal));
+          }
+        } else {
+          const updatedDefaults = JSON.parse(localStorage.getItem('fixtech_updated_defaults')) || {};
+          updatedDefaults[issue.id] = { ...(updatedDefaults[issue.id] || {}), materials: newArray, updatedAt: now };
+          localStorage.setItem('fixtech_updated_defaults', JSON.stringify(updatedDefaults));
+        }
+
+        window.renderModalMaterials(issue);
+      }
+      
+      window.loadAllIssuesFromStorage();
+      window.broadcastStateChange();
+      window.toggleEditMaterials();
+    };
+
+    window.resetMaterialsOriginal = function() {
+      delete editedMaterials[currentIssueId];
+      localStorage.setItem('fixtech_edited_materials', JSON.stringify(editedMaterials));
+      
+      const updatedDefaults = JSON.parse(localStorage.getItem('fixtech_updated_defaults')) || {};
+      if (updatedDefaults[currentIssueId]) {
+        delete updatedDefaults[currentIssueId].materials;
+        localStorage.setItem('fixtech_updated_defaults', JSON.stringify(updatedDefaults));
+      }
+
+      window.loadAllIssuesFromStorage();
+      const issue = allIssues.find(i => i.id === currentIssueId);
+      if (issue) window.renderModalMaterials(issue);
+      window.broadcastStateChange();
+      window.toggleEditMaterials();
+    };
+
+    window.openInstructionsModal = function() {
+      const issue = allIssues.find(i => i.id === currentIssueId);
+      if (!issue) return;
+
+      window.renderModalSteps(issue);
+      document.getElementById('steps-display-container').classList.remove('hidden');
+      document.getElementById('steps-edit-container').classList.add('hidden');
+      document.getElementById('instructions-modal').classList.remove('hidden');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    };
+
+    window.closeInstructionsModal = function() {
+      document.getElementById('instructions-modal').classList.add('hidden');
+    };
+
+    window.toggleEditSteps = function() {
+      const display = document.getElementById('steps-display-container');
+      const edit = document.getElementById('steps-edit-container');
+      const issue = allIssues.find(i => i.id === currentIssueId);
+
+      if (edit.classList.contains('hidden')) {
+        const activeSteps = editedSteps[currentIssueId] || (issue ? issue.steps : []);
+        document.getElementById('edit-steps-textarea').value = activeSteps.join('\n');
+        display.classList.add('hidden');
+        edit.classList.remove('hidden');
+      } else {
+        display.classList.remove('hidden');
+        edit.classList.add('hidden');
+      }
+    };
+
+    window.saveStepsEdit = function() {
+      const issue = allIssues.find(i => i.id === currentIssueId);
+      const val = document.getElementById('edit-steps-textarea').value.trim();
+      if (!val) return;
+
+      const newSteps = val.split('\n').map(s => s.trim()).filter(Boolean);
+      const now = Date.now();
+
+      editedSteps[currentIssueId] = newSteps;
+      localStorage.setItem('fixtech_edited_steps', JSON.stringify(editedSteps));
+
+      if (issue) {
+        issue.steps = newSteps;
+        issue.updatedAt = now;
+        
+        if (issue.id.startsWith('custom-')) {
+          const customLocal = JSON.parse(localStorage.getItem('fixtech_custom_issues')) || [];
+          const idx = customLocal.findIndex(item => item.id === issue.id);
+          if (idx !== -1) {
+            customLocal[idx].steps = newSteps;
+            customLocal[idx].updatedAt = now;
+            localStorage.setItem('fixtech_custom_issues', JSON.stringify(customLocal));
+          }
+        } else {
+          const updatedDefaults = JSON.parse(localStorage.getItem('fixtech_updated_defaults')) || {};
+          updatedDefaults[issue.id] = { ...updatedDefaults[issue.id], steps: newSteps, updatedAt: now };
+          localStorage.setItem('fixtech_updated_defaults', JSON.stringify(updatedDefaults));
+        }
+
+        window.renderModalSteps(issue);
+      }
+      window.broadcastStateChange();
+      window.toggleEditSteps();
+    };
+
+    window.resetStepsOriginal = function() {
+      delete editedSteps[currentIssueId];
+      localStorage.setItem('fixtech_edited_steps', JSON.stringify(editedSteps));
+
+      const updatedDefaults = JSON.parse(localStorage.getItem('fixtech_updated_defaults')) || {};
+      if (updatedDefaults[currentIssueId]) {
+        delete updatedDefaults[currentIssueId].steps;
+        localStorage.setItem('fixtech_updated_defaults', JSON.stringify(updatedDefaults));
+      }
+
+      window.loadAllIssuesFromStorage();
+      const issue = allIssues.find(i => i.id === currentIssueId);
+      if (issue) window.renderModalSteps(issue);
+      window.broadcastStateChange();
+      window.toggleEditSteps();
+    };
+
+    window.openAddIssueModal = function() {
+      document.getElementById('add-issue-modal').classList.remove('hidden');
+    };
+
+    window.closeAddIssueModal = function() {
+      document.getElementById('add-issue-modal').classList.add('hidden');
+    };
+
+    window.handleNewIssueSubmit = function(e) {
+      e.preventDefault();
+      
+      const newIssue = {
+        id: 'custom-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+        title: document.getElementById('custom-title').value,
+        category: document.getElementById('custom-category').value,
+        difficulty: document.getElementById('custom-difficulty').value,
+        time: '20 min',
+        safety: 'Respectez les consignes de sécurité standards.',
+        materials: document.getElementById('custom-materials').value.split(',').map(s => s.trim()).filter(Boolean),
+        steps: document.getElementById('custom-steps').value.split('\n').map(s => s.trim()).filter(Boolean),
+        updatedAt: Date.now()
+      };
+
+      const customLocal = JSON.parse(localStorage.getItem('fixtech_custom_issues')) || [];
+      customLocal.push(newIssue);
+      localStorage.setItem('fixtech_custom_issues', JSON.stringify(customLocal));
+
+      window.loadAllIssuesFromStorage();
+      window.broadcastStateChange();
+
+      window.closeAddIssueModal();
+      document.getElementById('add-issue-form').reset();
+    };
+
+    window.deleteCurrentIssue = function() {
+      if (!currentIssueId) return;
+      if (!confirm("Voulez-vous vraiment supprimer cette tâche ?")) return;
+
+      const issueIdToDelete = currentIssueId;
+
+      let customLocal = JSON.parse(localStorage.getItem('fixtech_custom_issues')) || [];
+      customLocal = customLocal.filter(item => item.id !== issueIdToDelete);
+      localStorage.setItem('fixtech_custom_issues', JSON.stringify(customLocal));
+
+      let deletedList = JSON.parse(localStorage.getItem('fixtech_deleted_issues')) || [];
+      if (!deletedList.includes(issueIdToDelete)) {
+        deletedList.push(issueIdToDelete);
+        localStorage.setItem('fixtech_deleted_issues', JSON.stringify(deletedList));
+      }
+
+      window.closeDetailModal();
+      window.loadAllIssuesFromStorage();
+      window.broadcastStateChange();
+    };
+
+    window.updatePaintRating = function(value) {
+      const config = paintEvaluationConfig[value];
+      if (!config) return;
+
+      const badge = document.getElementById('paint-badge');
+      if (badge) {
+        badge.textContent = config.label;
+        badge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold ${config.color}`;
+      }
+
+      const listContainer = document.getElementById('paint-materials-list');
+      if (listContainer) {
+        listContainer.innerHTML = config.tools.map(tool => `
+          <span class="px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 font-medium text-[10px]">
+            ${tool}
+          </span>
+        `).join('');
+      }
+    };
+
+    window.saveRoomEvaluation = function() {
+      const val = document.getElementById('room-number').value;
+      localStorage.setItem('fixtech_room_number', val);
+      window.broadcastStateChange();
+    };
+
+    window.loadRoomEvaluation = function() {
+      const saved = localStorage.getItem('fixtech_room_number');
+      if (saved) document.getElementById('room-number').value = saved;
+    };
+
+    // Listen to storage events for seamless updates across tabs/windows
+    window.addEventListener('storage', (e) => {
+      if (e.key && e.key.startsWith('fixtech_')) {
+        window.loadAllIssuesFromStorage();
+        window.renderIssues();
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      window.loadAllIssuesFromStorage();
+      window.loadRoomEvaluation();
+      window.updatePaintRating(1);
+      window.updateSyncBadge(true);
+
+      const searchEl = document.getElementById('search-input');
+      if (searchEl) {
+        searchEl.addEventListener('input', function(e) {
+          window.renderIssues(e.target.value.toLowerCase());
+        });
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
