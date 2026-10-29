@@ -1,879 +1,354 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CPAS LESSINES - Service Technique</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Inter Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #020617;
-      color: #f8fafc;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPAS Lessines - Service Technique</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        /* Imagem de Fundo Global vinda do GitHub */
+        body {
+            background-image: url('https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/7220d97d83214482737d80c61f415bd5b24f68ed/Paisagem%20Art%C3%ADstica%20de%20Lessines.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .app-overlay {
+            background: rgba(243, 244, 246, 0.85);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            min-height: 100vh;
+        }
+
+        #loginOverlay {
+            background-image: url('https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/7220d97d83214482737d80c61f415bd5b24f68ed/Paisagem%20Art%C3%ADstica%20de%20Lessines.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+    </style>
 </head>
-<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden">
+<body class="text-gray-800">
 
-  <!-- LOGO SVG DATA STRING CONFIGURATION -->
-  <script>
-    // Official CPAS Spiral/Arrow Emblem embedded as an SVG Data URL
-    const LOGO_URL = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500'><rect x='0' y='0' width='300' height='500' fill='%23700028'/><rect x='300' y='0' width='200' height='500' fill='%23fcd8d0'/><path d='M200 180 C200 230 160 250 140 220 C120 180 180 120 230 140 C300 170 300 300 220 370 C140 440 40 370 35 250 C30 120 120 20 250 20 C380 20 480 120 480 250 C480 370 390 470 250 490 C120 510 30 420 30 250' fill='none' stroke='%23ffffff' stroke-width='38' stroke-linecap='round'/><path d='M250 490 C360 480 470 390 430 250 L480 270 M430 250 L400 310' fill='none' stroke='%23700028' stroke-width='38' stroke-linecap='round' stroke-linejoin='round'/></svg>";
-  </script>
+    <div class="app-overlay flex flex-col">
 
-  <!-- SHARED USER LOGIN OVERLAY (FULLSCREEN) -->
-  <div id="auth-overlay" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
-    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-      
-      <!-- Brand Logo Header -->
-      <div class="text-center space-y-2">
-        <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center overflow-hidden shadow-lg p-1">
-          <img id="login-logo-img" src="https://placehold.co/100x100/1e293b/f59e0b?text=CPAS" alt="CPAS Logo" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://placehold.co/100x100/1e293b/f59e0b?text=CPAS'">
-        </div>
-        <h1 class="text-xl font-bold tracking-tight text-white">CPAS LESSINES</h1>
-        <p class="text-xs text-slate-400 font-medium">Connexion Unique - Service Technique</p>
-      </div>
+        <!-- OVERLAY DE LOGIN -->
+        <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="glass-card w-full max-w-md p-8 rounded-2xl shadow-2xl text-center flex flex-col items-center">
+                
+                <!-- LOGO SVG CPAS LESSINES -->
+                <div class="w-24 h-24 mb-4">
+                    <svg viewBox="0 0 500 500" class="w-full h-full drop-shadow-md">
+                        <rect width="300" height="500" x="0" y="0" fill="#700028" />
+                        <rect width="200" height="500" x="300" y="0" fill="#fcdcd4" />
+                        <path d="M 250,50 A 180,180 0 1,0 250,410 A 130,130 0 1,0 250,150 A 80,80 0 1,0 250,310 A 30,30 0 1,0 250,230" 
+                              fill="none" stroke="#ffffff" stroke-width="32" stroke-linecap="round"/>
+                        <path d="M 250,410 C 330,410 420,380 480,270" 
+                              fill="none" stroke="#700028" stroke-width="32" stroke-linecap="round"/>
+                        <path d="M 420,290 L 490,260 L 470,340 Z" fill="#700028" />
+                    </svg>
+                </div>
 
-      <!-- Auth Error Alert -->
-      <div id="auth-error-alert" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center space-x-2">
-        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
-        <span id="auth-error-text">Nom d'utilisateur ou mot de passe incorrect.</span>
-      </div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-1">CPAS LESSINES</h1>
+                <p class="text-sm font-semibold text-red-900 uppercase tracking-wider mb-6">Service Technique</p>
 
-      <!-- Shared Credentials Form -->
-      <form id="auth-form" onsubmit="handleSharedLoginSubmit(event)" class="space-y-4">
-        <div>
-          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nom d'Utilisateur</label>
-          <div class="relative">
-            <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3 text-slate-500"></i>
-            <input type="text" id="auth-username" required placeholder="st" autocomplete="username"
-              class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500">
-          </div>
-        </div>
+                <div id="loginError" class="hidden w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm font-medium">
+                    ⚠️ Nom d'utilisateur ou mot de passe incorrect.
+                </div>
 
-        <div>
-          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Mot de Passe</label>
-          <div class="relative">
-            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3 text-slate-500"></i>
-            <input type="password" id="auth-password" required placeholder="••••••••" autocomplete="current-password"
-              class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500">
-          </div>
-        </div>
-
-        <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center space-x-2">
-          <i data-lucide="log-in" class="w-4 h-4"></i>
-          <span>Se Connecter</span>
-        </button>
-      </form>
-
-      <p class="text-[10px] text-center text-slate-500">Accès restreint au personnel autorisé (ST).</p>
-    </div>
-  </div>
-
-  <!-- HEADER -->
-  <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center overflow-hidden shadow-sm p-0.5">
-        <img id="header-logo-img" src="https://placehold.co/100x100/1e293b/f59e0b?text=CPAS" alt="CPAS Logo" class="w-full h-full object-contain rounded-lg" onerror="this.src='https://placehold.co/100x100/1e293b/f59e0b?text=CPAS'">
-      </div>
-      <div>
-        <div class="flex items-center space-x-2">
-          <h1 id="app-company-name" class="font-bold text-sm tracking-tight text-slate-100">CPAS LESSINES</h1>
-          <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1 animate-pulse"></span>Connexion...
-          </span>
-        </div>
-        <p id="user-display-email" class="text-[11px] text-slate-400 font-medium">Technicien ST</p>
-      </div>
-    </div>
-    
-    <div class="flex items-center space-x-2">
-      <button onclick="openAddIssueModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-lg shadow-amber-500/20 transition-all active:scale-95">
-        <i data-lucide="plus" class="w-4 h-4"></i>
-        <span class="hidden sm:inline">Nouvelle Tâche</span>
-      </button>
-
-      <button onclick="handleSharedLogout()" title="Déconnexion" class="p-2 bg-slate-900 border border-slate-800 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 text-slate-400 rounded-xl text-xs transition-all">
-        <i data-lucide="log-out" class="w-4 h-4"></i>
-      </button>
-    </div>
-  </header>
-
-  <!-- DIAGNOSTIC BANNER -->
-  <div id="diagnostic-banner" class="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 text-xs flex items-center justify-between text-amber-300">
-    <div class="flex items-center space-x-2">
-      <i data-lucide="info" class="w-4 h-4 text-amber-400 shrink-0"></i>
-      <span id="diagnostic-text" class="font-medium">Vérification de la session et synchronisation...</span>
-    </div>
-    <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-amber-400 hover:text-white">
-      <i data-lucide="x" class="w-4 h-4"></i>
-    </button>
-  </div>
-
-  <!-- MAIN APP CONTAINER -->
-  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6 pb-24">
-
-    <!-- SEARCH BAR SECTION -->
-    <div class="relative">
-      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-        <i data-lucide="search" class="w-4 h-4"></i>
-      </div>
-      <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, un équipement..." 
-        class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors shadow-sm">
-    </div>
-
-    <!-- CATEGORIES FILTER -->
-    <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
-      <button onclick="filterCategory('todos')" class="cat-btn bg-amber-500 text-slate-950 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap shadow-md transition-all">Tous</button>
-      <button onclick="filterCategory('plomberie')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Plomberie</button>
-      <button onclick="filterCategory('electrique')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Électrique</button>
-      <button onclick="filterCategory('mobilier')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Mobilier</button>
-      <button onclick="filterCategory('peinture')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Peinture & Murs</button>
-      <button onclick="filterCategory('tv')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">TV & Multimédia</button>
-      <button onclick="filterCategory('serrurerie')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Serrurerie</button>
-    </div>
-
-    <!-- ISSUES GRID -->
-    <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      <!-- Populated dynamically -->
-    </div>
-
-    <!-- PAINT & ROOM EVALUATION SECTION -->
-    <div id="paint-eval-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-            <i data-lucide="paint-bucket" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h2 class="font-bold text-xs text-slate-100">Évaluation Rapide Murs & Peinture</h2>
-            <p class="text-[10px] text-slate-400">Sélectionnez le niveau de détérioration pour connaitre le matériel requis</p>
-          </div>
-        </div>
-        <div id="paint-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          Niveau 1: Bon état
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <button onclick="updatePaintRating(1)" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-left transition-all group">
-          <span class="block text-[10px] text-slate-400 font-medium">Niveau 1</span>
-          <span class="text-xs font-bold text-slate-200 group-hover:text-amber-400">Impeccable</span>
-        </button>
-        <button onclick="updatePaintRating(2)" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-left transition-all group">
-          <span class="block text-[10px] text-slate-400 font-medium">Niveau 2</span>
-          <span class="text-xs font-bold text-slate-200 group-hover:text-amber-400">Légères traces</span>
-        </button>
-        <button onclick="updatePaintRating(3)" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-left transition-all group">
-          <span class="block text-[10px] text-slate-400 font-medium">Niveau 3</span>
-          <span class="text-xs font-bold text-slate-200 group-hover:text-amber-400">Fissures / Trous</span>
-        </button>
-        <button onclick="updatePaintRating(4)" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-left transition-all group">
-          <span class="block text-[10px] text-slate-400 font-medium">Niveau 4</span>
-          <span class="text-xs font-bold text-slate-200 group-hover:text-amber-400">Détérioré / Humidité</span>
-        </button>
-      </div>
-
-      <div class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
-        <span class="text-[10px] text-slate-400 font-medium mr-2">Matériel conseillé :</span>
-        <div id="paint-materials-list" class="flex flex-wrap gap-1.5">
-          <!-- Dynamically populated -->
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- DETAIL DRAWER / MODAL -->
-  <div id="detail-drawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex justify-end">
-    <div id="drawer-content" class="bg-slate-900 border-l border-slate-800 w-full max-w-lg h-full flex flex-col transform translate-y-full transition-transform duration-300 shadow-2xl">
-      <!-- Drawer Header -->
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <span id="modal-category" class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20"></span>
-          <span id="modal-time" class="text-xs text-slate-400 flex items-center"></span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="deleteCurrentIssue()" class="p-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors" title="Supprimer cette tâche">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-          </button>
-          <button onclick="closeDetailModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Drawer Scrollable Body -->
-      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
-        <div>
-          <h2 id="modal-title" class="font-bold text-base text-slate-100 leading-snug"></h2>
-        </div>
-
-        <!-- Safety Warning Box -->
-        <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start space-x-3 text-amber-400">
-          <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
-          <div class="text-xs leading-relaxed">
-            <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
-            <p id="modal-safety" class="text-slate-300"></p>
-          </div>
-        </div>
-
-        <!-- Materials Section -->
-        <div class="space-y-2.5">
-          <div class="flex items-center justify-between">
-            <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider flex items-center">
-              <i data-lucide="briefcase" class="w-3.5 h-3.5 mr-1.5 text-amber-400"></i> Matériel Requis
-            </h3>
-            <button onclick="toggleEditMaterials()" class="text-[10px] bg-slate-950 border border-slate-800 hover:bg-slate-800 text-amber-400 px-2 py-1 rounded-lg font-medium transition-colors flex items-center space-x-1">
-              <i data-lucide="edit-3" class="w-3 h-3"></i>
-              <span>Modifier</span>
-            </button>
-          </div>
-          
-          <div id="materials-display-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <!-- Populated -->
-          </div>
-
-          <!-- Materials Edit View -->
-          <div id="materials-edit-container" class="hidden space-y-2 p-3 bg-slate-950 border border-slate-800 rounded-2xl">
-            <p class="text-[10px] text-slate-400">Séparez les outils par des virgules :</p>
-            <textarea id="edit-materials-input" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
-            <div class="flex justify-end space-x-2 pt-1">
-              <button onclick="resetMaterialsOriginal()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-lg text-[10px] font-medium">Réinitialiser</button>
-              <button onclick="saveMaterialsEdit()" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-bold">Enregistrer</button>
+                <form id="loginForm" class="w-full space-y-4" onsubmit="handleLogin(event)">
+                    <div>
+                        <label class="block text-left text-xs font-bold text-gray-700 uppercase mb-1">Utilisateur</label>
+                        <input type="text" id="loginUser" required placeholder="Ex: st" 
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-800 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-left text-xs font-bold text-gray-700 uppercase mb-1">Mot de passe</label>
+                        <input type="password" id="loginPassword" required placeholder="••••••••" 
+                               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-800 focus:outline-none transition">
+                    </div>
+                    <button type="submit" 
+                            class="w-full bg-[#700028] hover:bg-red-900 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-200">
+                        Se connecter
+                    </button>
+                </form>
             </div>
-          </div>
         </div>
 
-        <!-- Instructions Button/Shortcut -->
-        <div class="pt-2">
-          <button onclick="openInstructionsModal()" class="w-full py-3 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-between transition-all">
-            <span class="flex items-center space-x-2">
-              <i data-lucide="list-checks" class="w-4 h-4"></i>
-              <span>Consulter la Procédure d'Intervention Pas-à-Pas</span>
-            </span>
-            <i data-lucide="chevron-right" class="w-4 h-4"></i>
-          </button>
+        <!-- CABEÇALHO -->
+        <header class="bg-[#700028]/95 backdrop-blur-md text-white shadow-lg sticky top-0 z-40">
+            <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 bg-white rounded-md p-1 shadow-sm">
+                        <svg viewBox="0 0 500 500" class="w-full h-full">
+                            <rect width="300" height="500" x="0" y="0" fill="#700028" />
+                            <rect width="200" height="500" x="300" y="0" fill="#fcdcd4" />
+                            <path d="M 250,50 A 180,180 0 1,0 250,410 A 130,130 0 1,0 250,150 A 80,80 0 1,0 250,310 A 30,30 0 1,0 250,230" 
+                                  fill="none" stroke="#ffffff" stroke-width="32" stroke-linecap="round"/>
+                            <path d="M 250,410 C 330,410 420,380 480,270" 
+                                  fill="none" stroke="#700028" stroke-width="32" stroke-linecap="round"/>
+                            <path d="M 420,290 L 490,260 L 470,340 Z" fill="#700028" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-none">CPAS LESSINES</h1>
+                        <span class="text-xs text-red-200 uppercase tracking-wider">Service Technique</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <span id="syncStatus" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ● En ligne
+                    </span>
+                    <button onclick="handleLogout()" title="Déconnexion" class="p-2 hover:bg-red-900 rounded-lg transition text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- PAINEL DE TAREFAS -->
+        <main class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-4">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1">
+                    <input type="text" id="searchInput" oninput="filterTasks()" placeholder="Rechercher une tâche..." 
+                           class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200/80 bg-white/90 backdrop-blur-sm shadow-sm focus:ring-2 focus:ring-red-800 focus:outline-none">
+                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <button onclick="openModal()" class="bg-[#700028] hover:bg-red-900 text-white font-bold py-3 px-6 rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Nouvelle Tâche</span>
+                </button>
+            </div>
+
+            <div id="taskList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </main>
+
+        <!-- MODAL -->
+        <div id="taskModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-[#700028] text-white px-6 py-4 flex justify-between items-center">
+                    <h3 id="modalTitle" class="font-bold text-lg">Nouvelle Tâche</h3>
+                    <button onclick="closeModal()" class="text-white/80 hover:text-white text-2xl font-bold">&times;</button>
+                </div>
+                <form id="taskForm" onsubmit="saveTask(event)" class="p-6 space-y-4">
+                    <input type="hidden" id="taskId">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Titre / Description</label>
+                        <input type="text" id="taskTitle" required class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-800 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Statut</label>
+                        <select id="taskStatus" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-800 focus:outline-none">
+                            <option value="A faire">À faire</option>
+                            <option value="En cours">En cours</option>
+                            <option value="Terminé">Terminé</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Priorité</label>
+                        <select id="taskPriority" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-800 focus:outline-none">
+                            <option value="Basse">Basse</option>
+                            <option value="Moyenne" selected>Moyenne</option>
+                            <option value="Haute">Haute</option>
+                            <option value="Urgente">Urgente</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Remarques / Notes</label>
+                        <textarea id="taskNotes" rows="3" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-800 focus:outline-none"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium">Annuler</button>
+                        <button type="submit" class="px-5 py-2.5 rounded-lg bg-[#700028] text-white font-bold hover:bg-red-900 shadow-md">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
         </div>
-      </div>
+
     </div>
-  </div>
 
-  <!-- INSTRUCTIONS MODAL -->
-  <div id="instructions-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="font-bold text-xs text-slate-100 flex items-center">
-          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-amber-400"></i> Procédure d'Intervention
-        </h3>
-        <div class="flex items-center space-x-2">
-          <button onclick="toggleEditSteps()" class="text-[10px] bg-slate-950 border border-slate-800 hover:bg-slate-800 text-amber-400 px-2 py-1 rounded-lg font-medium transition-colors flex items-center space-x-1">
-            <i data-lucide="edit-3" class="w-3 h-3"></i>
-            <span>Modifier</span>
-          </button>
-          <button onclick="closeInstructionsModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
+    <!-- SCRIPT FIREBASE & LÓGICA -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKey_cpasLessines2026",
+            authDomain: "cpas-lessines-st.firebaseapp.com",
+            projectId: "cpas-lessines-st",
+            storageBucket: "cpas-lessines-st.appspot.com",
+            messagingSenderId: "000000000000",
+            appId: "1:000000000000:web:000000000000"
+        };
 
-      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
-        <div id="steps-display-container">
-          <ol id="instructions-steps-list" class="space-y-2.5 text-xs text-slate-300 list-decimal pl-4">
-            <!-- Populated -->
-          </ol>
-        </div>
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        <div id="steps-edit-container" class="hidden space-y-2">
-          <p class="text-[10px] text-slate-400">Chaque ligne correspond à une étape distincte :</p>
-          <textarea id="edit-steps-textarea" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
-          <div class="flex justify-end space-x-2 pt-1">
-            <button onclick="resetStepsOriginal()" class="px-2.5 py-1 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-lg text-[10px] font-medium">Réinitialiser</button>
-            <button onclick="saveStepsEdit()" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-bold">Enregistrer</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+        let allTasks = [];
 
-  <!-- ADD NEW ISSUE MODAL -->
-  <div id="add-issue-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="font-bold text-xs text-slate-100 flex items-center">
-          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-amber-400"></i> Ajouter une Nouvelle Tâche / Panne
-        </h3>
-        <button onclick="closeAddIssueModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <form id="add-issue-form" onsubmit="handleNewIssueSubmit(event)" class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
-        <div>
-          <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Titre de la Panne / Tâche</label>
-          <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Catégorie</label>
-            <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
-              <option value="plomberie">Plomberie</option>
-              <option value="electrique">Électrique</option>
-              <option value="mobilier">Mobilier</option>
-              <option value="peinture">Peinture & Murs</option>
-              <option value="tv">TV & Multimédia</option>
-              <option value="serrurerie">Serrurerie</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Difficulté</label>
-            <select id="custom-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
-              <option value="Facile">Facile</option>
-              <option value="Moyenne">Moyenne</option>
-              <option value="Difficile">Difficile</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Matériel Requis (séparé par des virgules)</label>
-          <input type="text" id="custom-materials" required placeholder="Ex: Tournevis, Ampoule LED E27, Escabeau" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
-        </div>
-
-        <div>
-          <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Étapes de l'Intervention (une par ligne)</label>
-          <textarea id="custom-steps" rows="4" required placeholder="Étape 1&#10;Étape 2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
-        </div>
-
-        <div class="pt-2 flex justify-end space-x-2">
-          <button type="button" onclick="closeAddIssueModal()" class="px-4 py-2 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
-          <button type="submit" class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20">Créer la Tâche</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- FIREBASE & REALTIME SYNC MODULE -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyACXjspbF8vSSFY4mIqhKy0LdaCRNSjsq4",
-      authDomain: "cpas-lessines-st.firebaseapp.com",
-      projectId: "cpas-lessines-st",
-      storageBucket: "cpas-lessines-st.firebasestorage.app",
-      messagingSenderId: "57517677345",
-      appId: "1:57517677345:web:5dc915d7390bd7d5dabc60",
-      measurementId: "G-C4V40YYT8J"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const tasksCollection = collection(db, 'tasks');
-
-    let unsubscribeSync = null;
-    let allIssues = [];
-    let currentCategory = 'todos';
-    let currentIssueId = null;
-
-    // Hardcoded Master Credentials fallback
-    const HARDCODED_USER = "st";
-    const HARDCODED_PASS = "Lessines2026!";
-
-    const defaultIssues = [
-      {
-        id: 'plomb-1',
-        category: 'plomberie',
-        title: 'Fuite de Robinet / Lave-mains',
-        time: '15-30 min',
-        difficulty: 'Facile',
-        safety: 'Coupez l\'eau au robinet d\'arrêt sous le lavabo avant d\'intervenir.',
-        materials: ['Chiffon microfibre', 'Clé anglaise / Clé à molette', 'Joints toriques de rechange', 'Ruban Téflon'],
-        steps: [
-          'Fermez les robinets d\'arrivée d\'eau chaude et froide.',
-          'Démontez le mousseur/brise-jet pour vérifier s\'il est entartré.',
-          'Remplacez le joint défectueux ou appliquez du ruban Téflon sur le filetage.',
-          'Resserrez sans forcer puis rouvrez l\'eau pour tester l\'étanchéité.'
-        ]
-      },
-      {
-        id: 'plomb-2',
-        category: 'plomberie',
-        title: 'WC Bouché / Écoulement Lent',
-        time: '10-20 min',
-        difficulty: 'Facile',
-        safety: 'Utilisez des gants étanches et des lunettes de protection.',
-        materials: ['Déboucheur à ventouse', 'Furet de débouchage', 'Gants de protection', 'Seau d\'eau chaude'],
-        steps: [
-          'Placez la ventouse sur la cuvette et effectuez des mouvements de va-et-vient énergiques.',
-          'Si l\'eau ne s\'évacue pas, introduisez le furet dans le siphon en tournant la manivelle.',
-          'Versez un seau d\'eau chaude d\'un coup sec pour rincer la canalisation.'
-        ]
-      },
-      {
-        id: 'elec-1',
-        category: 'electrique',
-        title: 'Prise / Disjoncteur Réarmé qui Saute',
-        time: '10-15 min',
-        difficulty: 'Moyenne',
-        safety: 'ATTENTION: Coupez le disjoncteur général avant de toucher au boîtier.',
-        materials: ['Tournevis isolé VDE', 'Multimètre / Testeur de tension', 'Lampe frontale'],
-        steps: [
-          'Identifiez le disjoncteur divisionnaire tombé sur le coffret électrique.',
-          'Débranchez tous les appareils reliés à cette ligne électrique.',
-          'Réarmez le disjoncteur. S\'il reste en haut, rebranchez un à un les appareils.',
-          'Si le disjoncteur saute instantanément sans appareil, ouvrez la prise pour vérifier les fils.'
-        ]
-      }
-    ];
-
-    // Seed master credentials document into Firestore
-    async function seedMasterCredentials() {
-      try {
-        const configDocRef = doc(db, 'settings', 'auth_config');
-        const docSnap = await getDoc(configDocRef);
-        if (!docSnap.exists()) {
-          await setDoc(configDocRef, {
-            username: HARDCODED_USER,
-            password: HARDCODED_PASS
-          });
-        }
-      } catch (err) {
-        console.warn("Could not seed settings document, relying on internal match:", err);
-      }
-    }
-
-    window.handleSharedLoginSubmit = async function(e) {
-      e.preventDefault();
-      const userVal = document.getElementById('auth-username').value.trim();
-      const passVal = document.getElementById('auth-password').value.trim();
-      const alertBox = document.getElementById('auth-error-alert');
-
-      alertBox.classList.add('hidden');
-
-      let valid = false;
-
-      try {
-        const configDocRef = doc(db, 'settings', 'auth_config');
-        const docSnap = await getDoc(configDocRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.username === userVal && data.password === passVal) {
-            valid = true;
-          }
-        }
-      } catch (err) {
-        console.log("Firestore check fallback to static match");
-      }
-
-      if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
-        valid = true;
-      }
-
-      if (valid) {
-        localStorage.setItem('cpas_st_auth', 'true');
-        document.getElementById('auth-overlay').classList.add('hidden');
-        startFirestoreSync();
-      } else {
-        alertBox.classList.remove('hidden');
-      }
-    };
-
-    window.handleSharedLogout = function() {
-      if (confirm("Voulez-vous vraiment vous déconnecter ?")) {
-        localStorage.removeItem('cpas_st_auth');
-        if (unsubscribeSync) unsubscribeSync();
-        document.getElementById('auth-overlay').classList.remove('hidden');
-        window.updateSyncBadge('error', 'Déconnecté');
-      }
-    };
-
-    function checkExistingSession() {
-      const isAuth = localStorage.getItem('cpas_st_auth');
-      if (isAuth === 'true') {
-        document.getElementById('auth-overlay').classList.add('hidden');
-        startFirestoreSync();
-      } else {
-        document.getElementById('auth-overlay').classList.remove('hidden');
-        window.updateSyncBadge('error', 'Veuillez vous connecter');
-      }
-    }
-
-    window.updateSyncBadge = function(status, text) {
-      const badge = document.getElementById('sync-badge');
-      const diagBanner = document.getElementById('diagnostic-banner');
-      const diagText = document.getElementById('diagnostic-text');
-      
-      if (!badge) return;
-
-      if (status === 'online') {
-        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>${text}`;
-        diagText.textContent = "✅ Session 'st' active & Base de données en direct !";
-        diagBanner.className = "bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-2.5 text-xs flex items-center justify-between text-emerald-300";
-      } else if (status === 'error') {
-        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20";
-        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1"></span>${text}`;
-        diagText.textContent = `🔒 ${text}`;
-        diagBanner.className = "bg-red-500/10 border-b border-red-500/20 px-4 py-2.5 text-xs flex items-center justify-between text-red-300";
-      } else {
-        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20";
-        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1 animate-pulse"></span>${text}`;
-      }
-    };
-
-    function startFirestoreSync() {
-      window.updateSyncBadge('pending', 'Synchronisation...');
-
-      unsubscribeSync = onSnapshot(tasksCollection, (snapshot) => {
-        window.updateSyncBadge('online', 'En Direct');
-        
-        const cloudIssues = [];
-        snapshot.forEach((docSnap) => {
-          cloudIssues.push(docSnap.data());
+        window.addEventListener('DOMContentLoaded', () => {
+            const isAuth = localStorage.getItem('cpas_st_auth');
+            if (isAuth === 'true') {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                listenTasks();
+            }
         });
 
-        if (cloudIssues.length === 0 && !snapshot.metadata.fromCache) {
-          defaultIssues.forEach(async (issue) => {
-            const docRef = doc(db, 'tasks', issue.id);
-            await setDoc(docRef, { ...issue, updatedAt: Date.now(), updatedBy: 'st' });
-          });
-          allIssues = [...defaultIssues];
-        } else if (cloudIssues.length > 0) {
-          allIssues = cloudIssues;
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+
+            if (user === 'st' && pass === 'Lessines2026!') {
+                localStorage.setItem('cpas_st_auth', 'true');
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('loginError').classList.add('hidden');
+                listenTasks();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
         }
 
-        window.renderIssues();
-      }, (error) => {
-        console.error("Firestore sync error:", error);
-        window.updateSyncBadge('error', 'Erreur d\'accès Firestore');
-      });
-    }
+        function handleLogout() {
+            localStorage.removeItem('cpas_st_auth');
+            location.reload();
+        }
 
-    window.renderIssues = function(filterText = '') {
-      const container = document.getElementById('issues-list');
-      if (!container) return;
-      container.innerHTML = '';
+        function listenTasks() {
+            db.collection('tasks').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderTasks(allTasks);
+            }, err => {
+                console.error("Erreur Firestore:", err);
+                document.getElementById('syncStatus').innerText = "● Hors ligne";
+                document.getElementById('syncStatus').className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800";
+            });
+        }
 
-      const filtered = allIssues.filter(issue => {
-        const matchCategory = currentCategory === 'todos' || issue.category === currentCategory;
-        const activeMat = issue.materials || [];
-        const matchText = !filterText || 
-          (issue.title && issue.title.toLowerCase().includes(filterText)) ||
-          activeMat.some(m => m.toLowerCase().includes(filterText));
-        return matchCategory && matchText;
-      });
+        function renderTasks(tasks) {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
 
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-12 text-slate-500 text-xs col-span-full">
-            Aucun problème trouvé.
-          </div>`;
-        return;
-      }
+            if (tasks.length === 0) {
+                list.innerHTML = `<div class="col-span-full text-center py-10 text-gray-600 font-medium bg-white/70 backdrop-blur-md rounded-2xl shadow-sm">Aucune tâche trouvée.</div>`;
+                return;
+            }
 
-      filtered.forEach(issue => {
-        const activeMat = issue.materials || [];
-        const formattedDate = issue.updatedAt ? new Date(issue.updatedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : null;
+            tasks.forEach(task => {
+                const priorityColors = {
+                    'Basse': 'bg-gray-100 text-gray-700',
+                    'Moyenne': 'bg-blue-100 text-blue-800',
+                    'Haute': 'bg-orange-100 text-orange-800',
+                    'Urgente': 'bg-red-100 text-red-800 font-bold'
+                };
 
-        const card = document.createElement('div');
-        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:border-slate-700 transition-all cursor-pointer active:scale-[0.99] shadow-md flex flex-col justify-between";
-        card.onclick = () => window.openDetailModal(issue.id);
+                const card = document.createElement('div');
+                card.className = "task-card p-5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${priorityColors[task.priority] || 'bg-gray-100'}">
+                                ${task.priority || 'Moyenne'}
+                            </span>
+                            <span class="text-xs font-bold uppercase tracking-wider ${task.status === 'Terminé' ? 'text-green-600' : 'text-amber-600'}">
+                                ${task.status || 'A faire'}
+                            </span>
+                        </div>
+                        <h4 class="font-bold text-gray-900 text-base mb-1">${task.title}</h4>
+                        ${task.notes ? `<p class="text-sm text-gray-600 mb-4 whitespace-pre-line">${task.notes}</p>` : ''}
+                    </div>
+                    <div class="flex justify-between items-center pt-3 border-t border-gray-100 text-xs text-gray-400">
+                        <button onclick="editTask('${task.id}')" class="text-blue-600 hover:text-blue-800 font-bold">Modifier</button>
+                        <button onclick="deleteTask('${task.id}')" class="text-red-500 hover:text-red-700 font-bold">Supprimer</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
 
-        card.innerHTML = `
-          <div>
-            <div class="flex items-center justify-between mb-2.5">
-              <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                ${issue.category || 'Général'}
-              </span>
-              <span class="text-[10px] text-slate-400 font-medium">
-                ${issue.difficulty || 'Facile'}
-              </span>
-            </div>
-            <h3 class="font-bold text-xs text-slate-100 mb-2.5 leading-snug">${issue.title || 'Sans Titre'}</h3>
-            <div class="flex flex-wrap gap-1 mb-2">
-              ${activeMat.slice(0, 3).map(m => `
-                <span class="text-[10px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded-md border border-slate-800/80">
-                  ${m}
-                </span>
-              `).join('')}
-              ${activeMat.length > 3 ? `<span class="text-[10px] text-slate-500 self-center">+${activeMat.length - 3}</span>` : ''}
-            </div>
-          </div>
-          ${formattedDate ? `
-            <div class="pt-2.5 border-t border-slate-800/60 flex items-center justify-between text-[9px] text-slate-500">
-              <span class="truncate max-w-[120px]">${issue.updatedBy || 'st'}</span>
-              <span>${formattedDate}</span>
-            </div>
-          ` : ''}
-        `;
-        container.appendChild(card);
-      });
+        function filterTasks() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allTasks.filter(t => 
+                (t.title && t.title.toLowerCase().includes(query)) ||
+                (t.notes && t.notes.toLowerCase().includes(query))
+            );
+            renderTasks(filtered);
+        }
 
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-    };
+        function openModal() {
+            document.getElementById('taskForm').reset();
+            document.getElementById('taskId').value = '';
+            document.getElementById('modalTitle').innerText = 'Nouvelle Tâche';
+            document.getElementById('taskModal').classList.remove('hidden');
+        }
 
-    window.filterCategory = function(cat) {
-      currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.remove('bg-amber-500', 'text-slate-950', 'shadow-md');
-        btn.classList.add('bg-slate-900', 'text-slate-400', 'border', 'border-slate-800');
-      });
-      event.currentTarget.classList.remove('bg-slate-900', 'text-slate-400', 'border', 'border-slate-800');
-      event.currentTarget.classList.add('bg-amber-500', 'text-slate-950', 'shadow-md');
-      window.renderIssues();
-    };
+        function closeModal() {
+            document.getElementById('taskModal').classList.add('hidden');
+        }
 
-    window.openDetailModal = function(id) {
-      currentIssueId = id;
-      const issue = allIssues.find(i => i.id === id);
-      if (!issue) return;
+        function editTask(id) {
+            const task = allTasks.find(t => t.id === id);
+            if (!task) return;
 
-      document.getElementById('modal-category').textContent = issue.category || 'Général';
-      
-      const formattedDate = issue.updatedAt ? new Date(issue.updatedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : null;
-      document.getElementById('modal-time').innerHTML = `
-        <i data-lucide="clock" class="w-3 h-3 mr-1"></i> ${issue.time || '15 min'}
-        ${formattedDate ? `<span class="ml-2 text-slate-500 font-normal">(${formattedDate})</span>` : ''}
-      `;
-      document.getElementById('modal-title').textContent = issue.title || 'Sans Titre';
-      document.getElementById('modal-safety').textContent = issue.safety || 'Attention lors de l\'intervention.';
+            document.getElementById('taskId').value = task.id;
+            document.getElementById('taskTitle').value = task.title || '';
+            document.getElementById('taskStatus').value = task.status || 'A faire';
+            document.getElementById('taskPriority').value = task.priority || 'Moyenne';
+            document.getElementById('taskNotes').value = task.notes || '';
 
-      window.renderModalMaterials(issue);
-      window.renderModalSteps(issue);
+            document.getElementById('modalTitle').innerText = 'Modifier la Tâche';
+            document.getElementById('taskModal').classList.remove('hidden');
+        }
 
-      document.getElementById('materials-display-container').classList.remove('hidden');
-      document.getElementById('materials-edit-container').classList.add('hidden');
+        function saveTask(e) {
+            e.preventDefault();
+            const id = document.getElementById('taskId').value;
+            const data = {
+                title: document.getElementById('taskTitle').value,
+                status: document.getElementById('taskStatus').value,
+                priority: document.getElementById('taskPriority').value,
+                notes: document.getElementById('taskNotes').value,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
 
-      const drawer = document.getElementById('detail-drawer');
-      const content = document.getElementById('drawer-content');
-      
-      drawer.classList.remove('hidden');
-      setTimeout(() => {
-        content.classList.remove('translate-y-full');
-      }, 10);
+            if (id) {
+                db.collection('tasks').doc(id).update(data);
+            } else {
+                data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                db.collection('tasks').add(data);
+            }
+            closeModal();
+        }
 
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-    };
-
-    window.renderModalMaterials = function(issue) {
-      const activeMaterials = issue.materials || [];
-      const materialsContainer = document.getElementById('materials-display-container');
-      materialsContainer.innerHTML = activeMaterials.map(mat => `
-        <label class="flex items-center space-x-2.5 p-2 rounded-xl bg-slate-950 border border-slate-800/80 cursor-pointer active:bg-slate-800">
-          <input type="checkbox" class="rounded accent-amber-500 w-4 h-4 bg-slate-900 border-slate-700">
-          <span class="text-xs text-slate-200">${mat}</span>
-        </label>
-      `).join('');
-    };
-
-    window.renderModalSteps = function(issue) {
-      const activeSteps = issue.steps || [];
-      const stepsContainer = document.getElementById('instructions-steps-list');
-      stepsContainer.innerHTML = activeSteps.map(step => `
-        <li class="p-2.5 rounded-lg bg-slate-950 border border-slate-800/60 leading-relaxed text-xs">${step}</li>
-      `).join('');
-    };
-
-    window.closeDetailModal = function() {
-      const content = document.getElementById('drawer-content');
-      content.classList.add('translate-y-full');
-      setTimeout(() => {
-        document.getElementById('detail-drawer').classList.add('hidden');
-      }, 300);
-    };
-
-    window.toggleEditMaterials = function() {
-      const display = document.getElementById('materials-display-container');
-      const edit = document.getElementById('materials-edit-container');
-      const issue = allIssues.find(i => i.id === currentIssueId);
-      
-      if (edit.classList.contains('hidden')) {
-        document.getElementById('edit-materials-input').value = (issue && issue.materials ? issue.materials : []).join(', ');
-        display.classList.add('hidden');
-        edit.classList.remove('hidden');
-      } else {
-        display.classList.remove('hidden');
-        edit.classList.add('hidden');
-      }
-    };
-
-    window.saveMaterialsEdit = async function() {
-      const issue = allIssues.find(i => i.id === currentIssueId);
-      if (!issue) return;
-      const val = document.getElementById('edit-materials-input').value.trim();
-
-      const newArray = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
-      const updatedIssue = { ...issue, materials: newArray, updatedAt: Date.now(), updatedBy: 'st' };
-
-      const docRef = doc(db, 'tasks', currentIssueId);
-      await setDoc(docRef, updatedIssue);
-
-      window.renderModalMaterials(updatedIssue);
-      window.toggleEditMaterials();
-    };
-
-    window.resetMaterialsOriginal = async function() {
-      const orig = defaultIssues.find(i => i.id === currentIssueId);
-      if (!orig) return;
-
-      const docRef = doc(db, 'tasks', currentIssueId);
-      await setDoc(docRef, { ...orig, updatedAt: Date.now(), updatedBy: 'st' });
-
-      window.renderModalMaterials(orig);
-      window.toggleEditMaterials();
-    };
-
-    window.openInstructionsModal = function() {
-      const issue = allIssues.find(i => i.id === currentIssueId);
-      if (!issue) return;
-
-      window.renderModalSteps(issue);
-      document.getElementById('steps-display-container').classList.remove('hidden');
-      document.getElementById('steps-edit-container').classList.add('hidden');
-      document.getElementById('instructions-modal').classList.remove('hidden');
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-    };
-
-    window.closeInstructionsModal = function() {
-      document.getElementById('instructions-modal').classList.add('hidden');
-    };
-
-    window.toggleEditSteps = function() {
-      const display = document.getElementById('steps-display-container');
-      const edit = document.getElementById('steps-edit-container');
-      const issue = allIssues.find(i => i.id === currentIssueId);
-
-      if (edit.classList.contains('hidden')) {
-        document.getElementById('edit-steps-textarea').value = (issue && issue.steps ? issue.steps : []).join('\n');
-        display.classList.add('hidden');
-        edit.classList.remove('hidden');
-      } else {
-        display.classList.remove('hidden');
-        edit.classList.add('hidden');
-      }
-    };
-
-    window.saveStepsEdit = async function() {
-      const issue = allIssues.find(i => i.id === currentIssueId);
-      if (!issue) return;
-      const val = document.getElementById('edit-steps-textarea').value.trim();
-
-      const newSteps = val ? val.split('\n').map(s => s.trim()).filter(Boolean) : [];
-      const updatedIssue = { ...issue, steps: newSteps, updatedAt: Date.now(), updatedBy: 'st' };
-
-      const docRef = doc(db, 'tasks', currentIssueId);
-      await setDoc(docRef, updatedIssue);
-
-      window.renderModalSteps(updatedIssue);
-      window.toggleEditSteps();
-    };
-
-    window.resetStepsOriginal = async function() {
-      const orig = defaultIssues.find(i => i.id === currentIssueId);
-      if (!orig) return;
-
-      const docRef = doc(db, 'tasks', currentIssueId);
-      await setDoc(docRef, { ...orig, updatedAt: Date.now(), updatedBy: 'st' });
-
-      window.renderModalSteps(orig);
-      window.toggleEditSteps();
-    };
-
-    window.openAddIssueModal = function() {
-      document.getElementById('add-issue-modal').classList.remove('hidden');
-    };
-
-    window.closeAddIssueModal = function() {
-      document.getElementById('add-issue-modal').classList.add('hidden');
-    };
-
-    window.handleNewIssueSubmit = async function(e) {
-      e.preventDefault();
-      
-      const newId = 'custom-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
-      const newIssue = {
-        id: newId,
-        title: document.getElementById('custom-title').value,
-        category: document.getElementById('custom-category').value,
-        difficulty: document.getElementById('custom-difficulty').value,
-        time: '20 min',
-        safety: 'Respectez les consignes de sécurité standards.',
-        materials: document.getElementById('custom-materials').value.split(',').map(s => s.trim()).filter(Boolean),
-        steps: document.getElementById('custom-steps').value.split('\n').map(s => s.trim()).filter(Boolean),
-        updatedAt: Date.now(),
-        updatedBy: 'st'
-      };
-
-      const docRef = doc(db, 'tasks', newId);
-      await setDoc(docRef, newIssue);
-
-      window.closeAddIssueModal();
-      document.getElementById('add-issue-form').reset();
-    };
-
-    window.deleteCurrentIssue = async function() {
-      if (!currentIssueId) return;
-      if (!confirm("Voulez-vous vraiment supprimer cette tâche ?")) return;
-
-      const docRef = doc(db, 'tasks', currentIssueId);
-      await deleteDoc(docRef);
-
-      window.closeDetailModal();
-    };
-
-    // Paint Evaluation functions
-    window.updatePaintRating = function(level) {
-      const badge = document.getElementById('paint-badge');
-      const list = document.getElementById('paint-materials-list');
-      
-      const paintConfigs = {
-        1: { title: 'Niveau 1: Bon état', materials: ['Éponge', 'Eau savonneuse'], badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-        2: { title: 'Niveau 2: Traces légères', materials: ['Lessive St-Marc', 'Éponge abrasive', 'Peinture de retouche'], badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-        3: { title: 'Niveau 3: Fissures/Trous', materials: ['Enduit de rebouchage', 'Couteau à enduire', 'Papier de verre (grain 120)', 'Sous-couche'], badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-        4: { title: 'Niveau 4: Abrîmé/Humidité', materials: ['Traitement anti-humidité', 'Brosse métallique', 'Enduit de lissage', 'Peinture finition'], badgeClass: 'bg-red-500/10 text-red-400 border-red-500/20' }
-      };
-
-      const config = paintConfigs[level] || paintConfigs[1];
-      badge.textContent = config.title;
-      badge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${config.badgeClass}`;
-
-      list.innerHTML = config.materials.map(mat => `
-        <span class="text-[10px] bg-slate-950 text-slate-300 px-2 py-0.5 rounded-md border border-slate-800">${mat}</span>
-      `).join('');
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // Set customized logo images
-      const loginLogo = document.getElementById('login-logo-img');
-      const headerLogo = document.getElementById('header-logo-img');
-      if (loginLogo && typeof LOGO_URL !== 'undefined') loginLogo.src = LOGO_URL;
-      if (headerLogo && typeof LOGO_URL !== 'undefined') headerLogo.src = LOGO_URL;
-
-      seedMasterCredentials();
-      checkExistingSession();
-
-      const searchEl = document.getElementById('search-input');
-      if (searchEl) {
-        searchEl.addEventListener('input', function(e) {
-          window.renderIssues(e.target.value.toLowerCase());
-        });
-      }
-
-      // Initialize default paint materials
-      window.updatePaintRating(1);
-
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-    });
-  </script>
+        function deleteTask(id) {
+            if (confirm("Voulez-vous vraiment supprimer cette tâche ?")) {
+                db.collection('tasks').doc(id).delete();
+            }
+        }
+    </script>
 </body>
-</html
+</html>
