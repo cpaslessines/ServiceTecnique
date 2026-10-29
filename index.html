@@ -129,7 +129,7 @@
             </div>
         </header>
 
-        <!-- PAINEL DE TAREFAS -->
+        <!-- PAINEL PRINCIPAL DE TAREFAS -->
         <main class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-4">
             <div class="flex flex-col sm:flex-row gap-3">
                 <div class="relative flex-1">
@@ -147,10 +147,14 @@
                 </button>
             </div>
 
-            <div id="taskList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div id="taskList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="col-span-full text-center py-10 text-gray-600 font-medium bg-white/80 backdrop-blur-md rounded-2xl shadow-sm">
+                    Chargement des tâches...
+                </div>
+            </div>
         </main>
 
-        <!-- MODAL TAREFAS -->
+        <!-- MODAL DE ADICIONAR / EDITAR TAREFA -->
         <div id="taskModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
                 <div class="bg-[#700028] text-white px-6 py-4 flex justify-between items-center">
@@ -194,10 +198,10 @@
 
     </div>
 
-    <!-- SCRIPT FIREBASE & LÓGICA COMPLETA -->
+    <!-- CONFIGURAÇÃO DO FIREBASE COM A SUA APIKEY -->
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyDummyKey_cpasLessines2026",
+            apiKey: "AIzaSyACXjspbF8vSSFY4mIqhKy0LdaCRNSjsq4",
             authDomain: "cpas-lessines-st.firebaseapp.com",
             projectId: "cpas-lessines-st",
             storageBucket: "cpas-lessines-st.appspot.com",
@@ -205,10 +209,15 @@
             appId: "1:000000000000:web:000000000000"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
+        let db = null;
         let allTasks = [];
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        } catch (e) {
+            console.error("Erreur d'initialisation Firebase:", e);
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const isAuth = localStorage.getItem('cpas_st_auth');
@@ -239,14 +248,25 @@
         }
 
         function listenTasks() {
-            db.collection('tasks').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+            if (!db) {
+                renderError("Firebase non configuré.");
+                return;
+            }
+
+            db.collection('tasks').onSnapshot(snapshot => {
                 allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderTasks(allTasks);
             }, err => {
                 console.error("Erreur Firestore:", err);
+                renderError("Erreur de connexion à la base de données.");
                 document.getElementById('syncStatus').innerText = "● Hors ligne";
                 document.getElementById('syncStatus').className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800";
             });
+        }
+
+        function renderError(msg) {
+            const list = document.getElementById('taskList');
+            list.innerHTML = `<div class="col-span-full text-center py-10 text-red-700 font-semibold bg-red-50 backdrop-blur-md rounded-2xl shadow-sm border border-red-200">${msg}</div>`;
         }
 
         function renderTasks(tasks) {
@@ -254,7 +274,7 @@
             list.innerHTML = '';
 
             if (tasks.length === 0) {
-                list.innerHTML = `<div class="col-span-full text-center py-10 text-gray-600 font-medium bg-white/70 backdrop-blur-md rounded-2xl shadow-sm">Aucune tâche trouvée.</div>`;
+                list.innerHTML = `<div class="col-span-full text-center py-10 text-gray-600 font-medium bg-white/80 backdrop-blur-md rounded-2xl shadow-sm">Aucune tâche trouvée. Créez-en une nouvelle!</div>`;
                 return;
             }
 
@@ -326,6 +346,8 @@
 
         function saveTask(e) {
             e.preventDefault();
+            if (!db) return;
+
             const id = document.getElementById('taskId').value;
             const data = {
                 title: document.getElementById('taskTitle').value,
@@ -345,6 +367,7 @@
         }
 
         function deleteTask(id) {
+            if (!db) return;
             if (confirm("Voulez-vous vraiment supprimer cette tâche ?")) {
                 db.collection('tasks').doc(id).delete();
             }
