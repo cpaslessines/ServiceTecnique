@@ -114,32 +114,13 @@
   <!-- MAIN APP CONTAINER -->
   <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6 pb-24">
 
-    <!-- SEARCH & ROOM EVALUATION SECTION -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <!-- Search -->
-      <div class="md:col-span-2 relative">
-        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-          <i data-lucide="search" class="w-4 h-4"></i>
-        </div>
-        <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, un équipement..." 
-          class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors shadow-sm">
+    <!-- SEARCH BAR SECTION -->
+    <div class="relative">
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+        <i data-lucide="search" class="w-4 h-4"></i>
       </div>
-
-      <!-- Room Number & Evaluation Shortcut -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between shadow-sm">
-        <div class="flex items-center space-x-2.5">
-          <div class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-amber-400">
-            <i data-lucide="door-closed" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <span class="text-[10px] text-slate-400 block font-medium">Chambre / Bureau</span>
-            <input type="text" id="room-number" placeholder="Ex: 104" oninput="saveRoomEvaluation()" class="bg-transparent text-xs font-bold text-slate-100 focus:outline-none w-20">
-          </div>
-        </div>
-        <button onclick="document.getElementById('paint-eval-section').scrollIntoView({behavior: 'smooth'})" class="text-[10px] bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-300 px-2.5 py-1.5 rounded-xl font-medium transition-colors">
-          Diagnostic
-        </button>
-      </div>
+      <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, un équipement..." 
+        class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors shadow-sm">
     </div>
 
     <!-- CATEGORIES FILTER -->
@@ -476,7 +457,6 @@
       let valid = false;
 
       try {
-        // Try verifying against Firestore credentials
         const configDocRef = doc(db, 'settings', 'auth_config');
         const docSnap = await getDoc(configDocRef);
         if (docSnap.exists()) {
@@ -489,7 +469,6 @@
         console.log("Firestore check fallback to static match");
       }
 
-      // Hardcoded check fallback
       if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
         valid = true;
       }
@@ -867,11 +846,6 @@
       `).join('');
     };
 
-    window.saveRoomEvaluation = function() {
-      const roomVal = document.getElementById('room-number').value;
-      localStorage.setItem('cpas_last_room', roomVal);
-    };
-
     document.addEventListener('DOMContentLoaded', () => {
       seedMasterCredentials();
       checkExistingSession();
@@ -881,12 +855,6 @@
         searchEl.addEventListener('input', function(e) {
           window.renderIssues(e.target.value.toLowerCase());
         });
-      }
-      
-      // Initialize room number from storage
-      const savedRoom = localStorage.getItem('cpas_last_room');
-      if (savedRoom && document.getElementById('room-number')) {
-        document.getElementById('room-number').value = savedRoom;
       }
 
       // Initialize default paint materials
