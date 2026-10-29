@@ -22,6 +22,55 @@
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden">
 
+  <!-- SHARED USER LOGIN OVERLAY (FULLSCREEN) -->
+  <div id="auth-overlay" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+      
+      <!-- Brand Logo Header -->
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold shadow-lg">
+          <i data-lucide="wrench" class="w-7 h-7"></i>
+        </div>
+        <h1 class="text-xl font-bold tracking-tight text-white">CPAS LESSINES</h1>
+        <p class="text-xs text-slate-400 font-medium">Connexion Unique - Service Technique</p>
+      </div>
+
+      <!-- Auth Error Alert -->
+      <div id="auth-error-alert" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center space-x-2">
+        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+        <span id="auth-error-text">Nom d'utilisateur ou mot de passe incorrect.</span>
+      </div>
+
+      <!-- Shared Credentials Form -->
+      <form id="auth-form" onsubmit="handleSharedLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nom d'Utilisateur</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3 text-slate-500"></i>
+            <input type="text" id="auth-username" required placeholder="st" autocomplete="username"
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Mot de Passe</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3 text-slate-500"></i>
+            <input type="password" id="auth-password" required placeholder="••••••••" autocomplete="current-password"
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center space-x-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>Se Connecter</span>
+        </button>
+      </form>
+
+      <p class="text-[10px] text-center text-slate-500">Accès restreint au personnel autorisé (ST).</p>
+    </div>
+  </div>
+
   <!-- HEADER -->
   <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-3">
@@ -35,7 +84,7 @@
             <span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1 animate-pulse"></span>Connexion...
           </span>
         </div>
-        <p id="app-subtitle" class="text-[11px] text-slate-400 font-medium">Service Technique</p>
+        <p id="user-display-email" class="text-[11px] text-slate-400 font-medium">Technicien ST</p>
       </div>
     </div>
     
@@ -44,14 +93,18 @@
         <i data-lucide="plus" class="w-4 h-4"></i>
         <span class="hidden sm:inline">Nouvelle Tâche</span>
       </button>
+
+      <button onclick="handleSharedLogout()" title="Déconnexion" class="p-2 bg-slate-900 border border-slate-800 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 text-slate-400 rounded-xl text-xs transition-all">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+      </button>
     </div>
   </header>
 
-  <!-- DIAGNOSTIC / ERROR BANNER -->
+  <!-- DIAGNOSTIC BANNER -->
   <div id="diagnostic-banner" class="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 text-xs flex items-center justify-between text-amber-300">
     <div class="flex items-center space-x-2">
       <i data-lucide="info" class="w-4 h-4 text-amber-400 shrink-0"></i>
-      <span id="diagnostic-text" class="font-medium">Vérification du statut de la base de données...</span>
+      <span id="diagnostic-text" class="font-medium">Vérification de la session et synchronisation...</span>
     </div>
     <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-amber-400 hover:text-white">
       <i data-lucide="x" class="w-4 h-4"></i>
@@ -182,15 +235,6 @@
           <div class="text-xs leading-relaxed">
             <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
             <p id="modal-safety" class="text-slate-300"></p>
-          </div>
-        </div>
-
-        <!-- Electrical Warning Alert if applicable -->
-        <div id="electrical-warning-box" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start space-x-3 text-red-400">
-          <i data-lucide="zap" class="w-4 h-4 mt-0.5 shrink-0"></i>
-          <div class="text-xs leading-relaxed">
-            <span class="font-bold block mb-0.5">Sécurité Électrique Obligatoire</span>
-            <p class="text-slate-300">Si vous n’êtes pas qualifié pour intervenir sur des circuits électriques, vous devez signaler le problème à votre supérieur.</p>
           </div>
         </div>
 
@@ -330,12 +374,11 @@
     </div>
   </div>
 
-  <!-- FIREBASE MODULE & REALTIME CLOUD SYNC -->
+  <!-- FIREBASE & REALTIME SYNC MODULE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Official Firebase Credentials for cpas-lessines-st
     const firebaseConfig = {
       apiKey: "AIzaSyACXjspbF8vSSFY4mIqhKy0LdaCRNSjsq4",
       authDomain: "cpas-lessines-st.firebaseapp.com",
@@ -348,13 +391,16 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-    // Direct root collection 'tasks'
     const tasksCollection = collection(db, 'tasks');
 
+    let unsubscribeSync = null;
     let allIssues = [];
     let currentCategory = 'todos';
     let currentIssueId = null;
+
+    // Hardcoded Master Credentials fallback
+    const HARDCODED_USER = "st";
+    const HARDCODED_PASS = "Lessines2026!";
 
     const defaultIssues = [
       {
@@ -400,74 +446,82 @@
           'Réarmez le disjoncteur. S\'il reste en haut, rebranchez un à un les appareils.',
           'Si le disjoncteur saute instantanément sans appareil, ouvrez la prise pour vérifier les fils.'
         ]
-      },
-      {
-        id: 'mob-1',
-        category: 'mobilier',
-        title: 'Charnière de Porte d\'Armoire Desserrée',
-        time: '5-10 min',
-        difficulty: 'Facile',
-        safety: 'Soutenez la porte lors du réglage pour éviter d\'endommager le bois.',
-        materials: ['Tournevis cruciforme (PZ2)', 'Pâte à bois / Tourillons'],
-        steps: [
-          'Resserrez la vis de fixation arrière de la charnière.',
-          'Ajustez la vis de réglage latérale pour aligner parfaitement la porte.',
-          'Si le trou dans le panneau est abîmé, collez un tourillon de bois puis revissez.'
-        ]
-      },
-      {
-        id: 'pin-1',
-        category: 'peinture',
-        title: 'Peinture Écaillée / Fissures sur le Mur',
-        time: '45-60 min',
-        difficulty: 'Moyenne',
-        safety: 'Portez un masque antipoussière lors du ponçage.',
-        materials: ['Couteau à reboucher / Spatule', 'Enduit de rebouchage', 'Papier à Poncer', 'Primaire d\'accrochage', 'Peinture de finition'],
-        steps: [
-          'Grattez la peinture écaillée avec le couteau à reboucher.',
-          'Appliquez l\'enduit de rebouchage dans les fissures/trous.',
-          'Laissez sécher complètement (environ 30 à 45 min).',
-          'Poncez avec le papier à poncer fin jusqu\'à obtenir une surface lisse.',
-          'Appliquez 1 couche de primaire puis 2 couches de peinture.'
-        ]
-      },
-      {
-        id: 'tv-1',
-        category: 'tv',
-        title: 'Problème de Signal TV / Décodeur Coincé',
-        time: '15 min',
-        difficulty: 'Facile',
-        safety: 'Débranchez les câbles d\'alimentation avant toute vérification.',
-        materials: ['Télécommande d\'origine', 'Câble HDMI de rechange', 'Piles neuves (AAA/AA)'],
-        steps: [
-          'Vérifiez si la TV est réglée sur la bonne source d\'entrée (HDMI 1, HDMI 2).',
-          'Débranchez le décodeur/TV du secteur pendant 30 secondes puis rebranchez.',
-          'Contrôler le branchement du câble HDMI et du câble d\'antenne.',
-          'Remplacez les piles de la télécommande si elle ne répond plus.'
-        ]
-      },
-      {
-        id: 'ser-1',
-        category: 'serrurerie',
-        title: 'Porte qui Frotte au Sol / Barillet Grippé',
-        time: '20 min',
-        difficulty: 'Facile',
-        safety: 'Attention aux pincements de doigts lors du réglage.',
-        materials: ['Clé Allen', 'Spray Lubrifiant PTFE / Graphite', 'Rondelles de repincage'],
-        steps: [
-          'Pour la serrure/barillet dur : injectez du spray graphite ou lubrifiant PTFE.',
-          'Pour la porte qui frotte : vérifiez le serrage des vis des paumelles.',
-          'Si la porte s\'affaisse, insérez une rondelle de repincage sur l\'axe de chaque paumelle.'
-        ]
       }
     ];
 
-    const paintEvaluationConfig = {
-      1: { label: 'Niveau 1: Bon état', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', tools: ['Chiffon microfibre', 'Nettoyant doux'] },
-      2: { label: 'Niveau 2: Soin léger', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20', tools: ['Papier à Poncer', 'Pinceau retouche', 'Peinture de finition'] },
-      3: { label: 'Niveau 3: Fissures/Trous', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20', tools: ['Enduit de rebouchage', 'Couteau à spatule', 'Papier à Poncer', 'Primaire'] },
-      4: { label: 'Niveau 4: Décapage complet', color: 'bg-red-500/10 text-red-400 border-red-500/20', tools: ['Décapant', 'Enduit de lissage', 'Papier à Poncer', 'Primaire + Peinture'] }
+    // Seed master credentials document into Firestore
+    async function seedMasterCredentials() {
+      try {
+        const configDocRef = doc(db, 'settings', 'auth_config');
+        const docSnap = await getDoc(configDocRef);
+        if (!docSnap.exists()) {
+          await setDoc(configDocRef, {
+            username: HARDCODED_USER,
+            password: HARDCODED_PASS
+          });
+        }
+      } catch (err) {
+        console.warn("Could not seed settings document, relying on internal match:", err);
+      }
+    }
+
+    window.handleSharedLoginSubmit = async function(e) {
+      e.preventDefault();
+      const userVal = document.getElementById('auth-username').value.trim();
+      const passVal = document.getElementById('auth-password').value.trim();
+      const alertBox = document.getElementById('auth-error-alert');
+
+      alertBox.classList.add('hidden');
+
+      let valid = false;
+
+      try {
+        // Try verifying against Firestore credentials
+        const configDocRef = doc(db, 'settings', 'auth_config');
+        const docSnap = await getDoc(configDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.username === userVal && data.password === passVal) {
+            valid = true;
+          }
+        }
+      } catch (err) {
+        console.log("Firestore check fallback to static match");
+      }
+
+      // Hardcoded check fallback
+      if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
+        valid = true;
+      }
+
+      if (valid) {
+        localStorage.setItem('cpas_st_auth', 'true');
+        document.getElementById('auth-overlay').classList.add('hidden');
+        startFirestoreSync();
+      } else {
+        alertBox.classList.remove('hidden');
+      }
     };
+
+    window.handleSharedLogout = function() {
+      if (confirm("Voulez-vous vraiment vous déconnecter ?")) {
+        localStorage.removeItem('cpas_st_auth');
+        if (unsubscribeSync) unsubscribeSync();
+        document.getElementById('auth-overlay').classList.remove('hidden');
+        window.updateSyncBadge('error', 'Déconnecté');
+      }
+    };
+
+    function checkExistingSession() {
+      const isAuth = localStorage.getItem('cpas_st_auth');
+      if (isAuth === 'true') {
+        document.getElementById('auth-overlay').classList.add('hidden');
+        startFirestoreSync();
+      } else {
+        document.getElementById('auth-overlay').classList.remove('hidden');
+        window.updateSyncBadge('error', 'Veuillez vous connecter');
+      }
+    }
 
     window.updateSyncBadge = function(status, text) {
       const badge = document.getElementById('sync-badge');
@@ -479,12 +533,12 @@
       if (status === 'online') {
         badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
         badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>${text}`;
-        diagText.textContent = "✅ Base de données Firebase connectée en temps réel ! Les modifications apparaissent instantanément sur tous les appareils.";
+        diagText.textContent = "✅ Session 'st' active & Base de données en direct !";
         diagBanner.className = "bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-2.5 text-xs flex items-center justify-between text-emerald-300";
       } else if (status === 'error') {
         badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20";
         badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1"></span>${text}`;
-        diagText.textContent = `❌ ERREUR FIREBASE : ${text}. Les Règles Firestore bloquent l'accès.`;
+        diagText.textContent = `🔒 ${text}`;
         diagBanner.className = "bg-red-500/10 border-b border-red-500/20 px-4 py-2.5 text-xs flex items-center justify-between text-red-300";
       } else {
         badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20";
@@ -492,43 +546,32 @@
       }
     };
 
-    function initFirebaseSync() {
-      try {
-        window.updateSyncBadge('pending', 'Connexion...');
+    function startFirestoreSync() {
+      window.updateSyncBadge('pending', 'Synchronisation...');
 
-        // Realtime listener
-        onSnapshot(tasksCollection, (snapshot) => {
-          window.updateSyncBadge('online', 'Cloud En Direct');
-          
-          const cloudIssues = [];
-          snapshot.forEach((docSnap) => {
-            cloudIssues.push(docSnap.data());
-          });
-
-          if (cloudIssues.length === 0 && !snapshot.metadata.fromCache) {
-            defaultIssues.forEach(async (issue) => {
-              const docRef = doc(db, 'tasks', issue.id);
-              await setDoc(docRef, { ...issue, updatedAt: Date.now() });
-            });
-            allIssues = [...defaultIssues];
-          } else if (cloudIssues.length > 0) {
-            allIssues = cloudIssues;
-          }
-
-          window.renderIssues();
-        }, (error) => {
-          console.error("Firestore sync error:", error);
-          if (error.code === 'permission-denied') {
-            window.updateSyncBadge('error', 'Accès Refusé (Règles Firestore)');
-          } else {
-            window.updateSyncBadge('error', error.message || 'Erreur Connexion');
-          }
+      unsubscribeSync = onSnapshot(tasksCollection, (snapshot) => {
+        window.updateSyncBadge('online', 'En Direct');
+        
+        const cloudIssues = [];
+        snapshot.forEach((docSnap) => {
+          cloudIssues.push(docSnap.data());
         });
 
-      } catch (err) {
-        console.error("Firestore init error:", err);
-        window.updateSyncBadge('error', 'Erreur d\'Initialisation');
-      }
+        if (cloudIssues.length === 0 && !snapshot.metadata.fromCache) {
+          defaultIssues.forEach(async (issue) => {
+            const docRef = doc(db, 'tasks', issue.id);
+            await setDoc(docRef, { ...issue, updatedAt: Date.now(), updatedBy: 'st' });
+          });
+          allIssues = [...defaultIssues];
+        } else if (cloudIssues.length > 0) {
+          allIssues = cloudIssues;
+        }
+
+        window.renderIssues();
+      }, (error) => {
+        console.error("Firestore sync error:", error);
+        window.updateSyncBadge('error', 'Erreur d\'accès Firestore');
+      });
     }
 
     window.renderIssues = function(filterText = '') {
@@ -540,7 +583,7 @@
         const matchCategory = currentCategory === 'todos' || issue.category === currentCategory;
         const activeMat = issue.materials || [];
         const matchText = !filterText || 
-          issue.title.toLowerCase().includes(filterText) ||
+          (issue.title && issue.title.toLowerCase().includes(filterText)) ||
           activeMat.some(m => m.toLowerCase().includes(filterText));
         return matchCategory && matchText;
       });
@@ -555,7 +598,7 @@
 
       filtered.forEach(issue => {
         const activeMat = issue.materials || [];
-        const formattedDate = issue.updatedAt ? new Date(issue.updatedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+        const formattedDate = issue.updatedAt ? new Date(issue.updatedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : null;
 
         const card = document.createElement('div');
         card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:border-slate-700 transition-all cursor-pointer active:scale-[0.99] shadow-md flex flex-col justify-between";
@@ -565,13 +608,13 @@
           <div>
             <div class="flex items-center justify-between mb-2.5">
               <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                ${issue.category}
+                ${issue.category || 'Général'}
               </span>
               <span class="text-[10px] text-slate-400 font-medium">
                 ${issue.difficulty || 'Facile'}
               </span>
             </div>
-            <h3 class="font-bold text-xs text-slate-100 mb-2.5 leading-snug">${issue.title}</h3>
+            <h3 class="font-bold text-xs text-slate-100 mb-2.5 leading-snug">${issue.title || 'Sans Titre'}</h3>
             <div class="flex flex-wrap gap-1 mb-2">
               ${activeMat.slice(0, 3).map(m => `
                 <span class="text-[10px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded-md border border-slate-800/80">
@@ -582,9 +625,9 @@
             </div>
           </div>
           ${formattedDate ? `
-            <div class="pt-2.5 border-t border-slate-800/60 flex items-center justify-end text-[9px] text-slate-500 space-x-1">
-              <i data-lucide="clock" class="w-2.5 h-2.5"></i>
-              <span>Modifié: ${formattedDate}</span>
+            <div class="pt-2.5 border-t border-slate-800/60 flex items-center justify-between text-[9px] text-slate-500">
+              <span class="truncate max-w-[120px]">${issue.updatedBy || 'st'}</span>
+              <span>${formattedDate}</span>
             </div>
           ` : ''}
         `;
@@ -610,24 +653,15 @@
       const issue = allIssues.find(i => i.id === id);
       if (!issue) return;
 
-      document.getElementById('modal-category').textContent = issue.category;
+      document.getElementById('modal-category').textContent = issue.category || 'Général';
       
-      const formattedDate = issue.updatedAt ? new Date(issue.updatedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+      const formattedDate = issue.updatedAt ? new Date(issue.updatedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : null;
       document.getElementById('modal-time').innerHTML = `
         <i data-lucide="clock" class="w-3 h-3 mr-1"></i> ${issue.time || '15 min'}
         ${formattedDate ? `<span class="ml-2 text-slate-500 font-normal">(${formattedDate})</span>` : ''}
       `;
-      document.getElementById('modal-title').textContent = issue.title;
+      document.getElementById('modal-title').textContent = issue.title || 'Sans Titre';
       document.getElementById('modal-safety').textContent = issue.safety || 'Attention lors de l\'intervention.';
-
-      const elecWarning = document.getElementById('electrical-warning-box');
-      if (elecWarning) {
-        if (issue.category.toLowerCase() === 'electrique' || issue.category.toLowerCase() === 'électrique') {
-          elecWarning.classList.remove('hidden');
-        } else {
-          elecWarning.classList.add('hidden');
-        }
-      }
 
       window.renderModalMaterials(issue);
       window.renderModalSteps(issue);
@@ -679,7 +713,7 @@
       const issue = allIssues.find(i => i.id === currentIssueId);
       
       if (edit.classList.contains('hidden')) {
-        document.getElementById('edit-materials-input').value = (issue ? issue.materials : []).join(', ');
+        document.getElementById('edit-materials-input').value = (issue && issue.materials ? issue.materials : []).join(', ');
         display.classList.add('hidden');
         edit.classList.remove('hidden');
       } else {
@@ -692,10 +726,9 @@
       const issue = allIssues.find(i => i.id === currentIssueId);
       if (!issue) return;
       const val = document.getElementById('edit-materials-input').value.trim();
-      if (!val) return;
 
-      const newArray = val.split(',').map(s => s.trim()).filter(Boolean);
-      const updatedIssue = { ...issue, materials: newArray, updatedAt: Date.now() };
+      const newArray = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const updatedIssue = { ...issue, materials: newArray, updatedAt: Date.now(), updatedBy: 'st' };
 
       const docRef = doc(db, 'tasks', currentIssueId);
       await setDoc(docRef, updatedIssue);
@@ -709,7 +742,7 @@
       if (!orig) return;
 
       const docRef = doc(db, 'tasks', currentIssueId);
-      await setDoc(docRef, { ...orig, updatedAt: Date.now() });
+      await setDoc(docRef, { ...orig, updatedAt: Date.now(), updatedBy: 'st' });
 
       window.renderModalMaterials(orig);
       window.toggleEditMaterials();
@@ -736,7 +769,7 @@
       const issue = allIssues.find(i => i.id === currentIssueId);
 
       if (edit.classList.contains('hidden')) {
-        document.getElementById('edit-steps-textarea').value = (issue ? issue.steps : []).join('\n');
+        document.getElementById('edit-steps-textarea').value = (issue && issue.steps ? issue.steps : []).join('\n');
         display.classList.add('hidden');
         edit.classList.remove('hidden');
       } else {
@@ -749,10 +782,9 @@
       const issue = allIssues.find(i => i.id === currentIssueId);
       if (!issue) return;
       const val = document.getElementById('edit-steps-textarea').value.trim();
-      if (!val) return;
 
-      const newSteps = val.split('\n').map(s => s.trim()).filter(Boolean);
-      const updatedIssue = { ...issue, steps: newSteps, updatedAt: Date.now() };
+      const newSteps = val ? val.split('\n').map(s => s.trim()).filter(Boolean) : [];
+      const updatedIssue = { ...issue, steps: newSteps, updatedAt: Date.now(), updatedBy: 'st' };
 
       const docRef = doc(db, 'tasks', currentIssueId);
       await setDoc(docRef, updatedIssue);
@@ -766,7 +798,7 @@
       if (!orig) return;
 
       const docRef = doc(db, 'tasks', currentIssueId);
-      await setDoc(docRef, { ...orig, updatedAt: Date.now() });
+      await setDoc(docRef, { ...orig, updatedAt: Date.now(), updatedBy: 'st' });
 
       window.renderModalSteps(orig);
       window.toggleEditSteps();
@@ -793,7 +825,8 @@
         safety: 'Respectez les consignes de sécurité standards.',
         materials: document.getElementById('custom-materials').value.split(',').map(s => s.trim()).filter(Boolean),
         steps: document.getElementById('custom-steps').value.split('\n').map(s => s.trim()).filter(Boolean),
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
+        updatedBy: 'st'
       };
 
       const docRef = doc(db, 'tasks', newId);
@@ -813,40 +846,35 @@
       window.closeDetailModal();
     };
 
-    window.updatePaintRating = function(value) {
-      const config = paintEvaluationConfig[value];
-      if (!config) return;
-
+    // Paint Evaluation functions
+    window.updatePaintRating = function(level) {
       const badge = document.getElementById('paint-badge');
-      if (badge) {
-        badge.textContent = config.label;
-        badge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold ${config.color}`;
-      }
+      const list = document.getElementById('paint-materials-list');
+      
+      const paintConfigs = {
+        1: { title: 'Niveau 1: Bon état', materials: ['Éponge', 'Eau savonneuse'], badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+        2: { title: 'Niveau 2: Traces légères', materials: ['Lessive St-Marc', 'Éponge abrasive', 'Peinture de retouche'], badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+        3: { title: 'Niveau 3: Fissures/Trous', materials: ['Enduit de rebouchage', 'Couteau à enduire', 'Papier de verre (grain 120)', 'Sous-couche'], badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+        4: { title: 'Niveau 4: Abrîmé/Humidité', materials: ['Traitement anti-humidité', 'Brosse métallique', 'Enduit de lissage', 'Peinture finition'], badgeClass: 'bg-red-500/10 text-red-400 border-red-500/20' }
+      };
 
-      const listContainer = document.getElementById('paint-materials-list');
-      if (listContainer) {
-        listContainer.innerHTML = config.tools.map(tool => `
-          <span class="px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 font-medium text-[10px]">
-            ${tool}
-          </span>
-        `).join('');
-      }
+      const config = paintConfigs[level] || paintConfigs[1];
+      badge.textContent = config.title;
+      badge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${config.badgeClass}`;
+
+      list.innerHTML = config.materials.map(mat => `
+        <span class="text-[10px] bg-slate-950 text-slate-300 px-2 py-0.5 rounded-md border border-slate-800">${mat}</span>
+      `).join('');
     };
 
     window.saveRoomEvaluation = function() {
-      const val = document.getElementById('room-number').value;
-      localStorage.setItem('fixtech_room_number', val);
-    };
-
-    window.loadRoomEvaluation = function() {
-      const saved = localStorage.getItem('fixtech_room_number');
-      if (saved) document.getElementById('room-number').value = saved;
+      const roomVal = document.getElementById('room-number').value;
+      localStorage.setItem('cpas_last_room', roomVal);
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-      initFirebaseSync();
-      window.loadRoomEvaluation();
-      window.updatePaintRating(1);
+      seedMasterCredentials();
+      checkExistingSession();
 
       const searchEl = document.getElementById('search-input');
       if (searchEl) {
@@ -854,6 +882,16 @@
           window.renderIssues(e.target.value.toLowerCase());
         });
       }
+      
+      // Initialize room number from storage
+      const savedRoom = localStorage.getItem('cpas_last_room');
+      if (savedRoom && document.getElementById('room-number')) {
+        document.getElementById('room-number').value = savedRoom;
+      }
+
+      // Initialize default paint materials
+      window.updatePaintRating(1);
+
       if (typeof lucide !== 'undefined') lucide.createIcons();
     });
   </script>
