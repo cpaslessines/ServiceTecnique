@@ -126,9 +126,15 @@
         class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors shadow-sm">
     </div>
 
-    <!-- CATEGORIES FILTER CONTAINER (GERADO DINAMICAMENTE) -->
-    <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
-      <!-- Preenchido dinamicamente -->
+    <!-- CATEGORIES FILTER CONTAINER & MANAGE BUTTON -->
+    <div class="flex items-center justify-between gap-2">
+      <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none flex-1">
+        <!-- Preenchido dinamicamente -->
+      </div>
+      <button onclick="openCategoryManager()" class="mb-2 bg-slate-900 hover:bg-slate-800 text-amber-400 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1 shrink-0 shadow-sm">
+        <i data-lucide="settings-2" class="w-3.5 h-3.5"></i>
+        <span>Gérer Catégories</span>
+      </button>
     </div>
 
     <!-- ISSUES GRID -->
@@ -331,7 +337,6 @@
     let currentCategory = 'todos';
     let currentIssueId = null;
 
-    // Lista padrão de categorias incluindo "autres"
     let categories = [
       { id: 'plomberie', label: 'Plomberie' },
       { id: 'electrique', label: 'Électrique' },
@@ -386,6 +391,9 @@
       if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
         localStorage.setItem('cpas_st_auth', 'true');
         document.getElementById('auth-overlay').classList.add('hidden');
+        loadSavedCategories();
+        renderCategoriesFilter();
+        renderCategorySelect();
         startFirestoreSync();
       } else {
         alertBox.classList.remove('hidden');
@@ -415,7 +423,6 @@
       }
     }
 
-    // Gestão de Categorias no localStorage
     function loadSavedCategories() {
       const saved = localStorage.getItem('cpas_custom_categories');
       if (saved) {
@@ -439,6 +446,7 @@
       });
 
       container.innerHTML = html;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     };
 
     window.renderCategorySelect = function() {
