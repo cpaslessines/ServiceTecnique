@@ -173,7 +173,7 @@
           <h2 id="modal-title" class="font-bold text-base text-slate-100 leading-snug"></h2>
         </div>
 
-        <!-- Safety Warning Box (Customizado para eletricidade / Aviso Vermelho) -->
+        <!-- Safety Warning Box -->
         <div id="modal-safety-container" class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start space-x-3 text-amber-400">
           <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
           <div class="text-xs leading-relaxed">
@@ -182,7 +182,7 @@
           </div>
         </div>
 
-        <!-- Aviso Vermelho Específico para Não Qualificados -->
+        <!-- Aviso Vermelho Específico para Categoria "electrique" -->
         <div id="modal-unqualified-alert" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start space-x-3 text-red-400">
           <i data-lucide="shield-alert" class="w-4 h-4 mt-0.5 shrink-0"></i>
           <div class="text-xs leading-relaxed font-semibold">
@@ -510,9 +510,9 @@
       document.getElementById('modal-title').textContent = issue.title || 'Sans Titre';
       document.getElementById('modal-safety').textContent = issue.safety || 'Attention lors de l\'intervention.';
 
-      // Mostrar ou esconder o aviso a vermelho específico para qualificações elétricas (id 'elec-1')
+      // Verificar se a categoria é "electrique" para mostrar o aviso a vermelho
       const unqualifiedAlert = document.getElementById('modal-unqualified-alert');
-      if (issue.id === 'elec-1') {
+      if (issue.category === 'electrique') {
         unqualifiedAlert.classList.remove('hidden');
       } else {
         unqualifiedAlert.classList.add('hidden');
