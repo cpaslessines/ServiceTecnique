@@ -173,12 +173,20 @@
           <h2 id="modal-title" class="font-bold text-base text-slate-100 leading-snug"></h2>
         </div>
 
-        <!-- Safety Warning Box -->
-        <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start space-x-3 text-amber-400">
+        <!-- Safety Warning Box (Customizado para eletricidade / Aviso Vermelho) -->
+        <div id="modal-safety-container" class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start space-x-3 text-amber-400">
           <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
           <div class="text-xs leading-relaxed">
             <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
             <p id="modal-safety" class="text-slate-300"></p>
+          </div>
+        </div>
+
+        <!-- Aviso Vermelho Específico para Não Qualificados -->
+        <div id="modal-unqualified-alert" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start space-x-3 text-red-400">
+          <i data-lucide="shield-alert" class="w-4 h-4 mt-0.5 shrink-0"></i>
+          <div class="text-xs leading-relaxed font-semibold">
+            <span>Si vous n'êtes pas qualifié pour manipuler des systèmes électriques, vous devez en informer votre supérieur.</span>
           </div>
         </div>
 
@@ -324,6 +332,21 @@
           'Fermez les robinets d\'arrivée d\'eau chaude et froide.',
           'Démontez le mousseur/brise-jet pour vérifier s\'il est entartré.',
           'Remplacez le joint défectueux ou appliquez du ruban Téflon sur le filetage.'
+        ]
+      },
+      {
+        id: 'elec-1',
+        category: 'electrique',
+        title: 'Prise / Disjoncteur Réarmé qui Saute',
+        time: '10-15 min',
+        difficulty: 'Moyenne',
+        safety: 'ATTENTION: Coupez le disjoncteur général avant de toucher au boîtier.',
+        materials: ['Tournevis isolé VDE', 'Multimètre / Testeur de tension', 'Lampe frontale'],
+        steps: [
+          'Identifiez le disjoncteur divisionnaire tombé sur le coffret électrique.',
+          'Débranchez tous les appareils reliés à cette ligne électrique.',
+          'Réarmez le disjoncteur. S\'il reste en haut, rebranchez un à un les appareils.',
+          'Si le disjoncteur saute instantanément sans appareil, ouvrez la prise pour vérifier les fils.'
         ]
       }
     ];
@@ -486,6 +509,14 @@
       document.getElementById('modal-time').innerHTML = `<i data-lucide="clock" class="w-3 h-3 mr-1"></i> ${issue.time || '15 min'}`;
       document.getElementById('modal-title').textContent = issue.title || 'Sans Titre';
       document.getElementById('modal-safety').textContent = issue.safety || 'Attention lors de l\'intervention.';
+
+      // Mostrar ou esconder o aviso a vermelho específico para qualificações elétricas (id 'elec-1')
+      const unqualifiedAlert = document.getElementById('modal-unqualified-alert');
+      if (issue.id === 'elec-1') {
+        unqualifiedAlert.classList.remove('hidden');
+      } else {
+        unqualifiedAlert.classList.add('hidden');
+      }
 
       const materialsContainer = document.getElementById('materials-display-container');
       const activeMaterials = issue.materials || [];
