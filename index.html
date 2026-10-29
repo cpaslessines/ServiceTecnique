@@ -18,7 +18,6 @@
       background-color: #020617;
       color: #f8fafc;
     }
-    /* Ecrã de Login com a Imagem Artística de Lessines e Overlay Escuro para Contraste */
     #auth-overlay {
       background-image: linear-gradient(rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.85)), url('https://github.com/cpaslessines/ServiceTecnique/raw/8b6706cc9f7ee3cbd0e7fda68b2b30940b5ab4d8/Paisagem%20Art%C3%ADstica%20de%20Lessines.png');
       background-size: cover;
@@ -33,7 +32,6 @@
   <div id="auth-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="max-w-md w-full bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
       
-      <!-- Brand Logo Header -->
       <div class="text-center space-y-2">
         <div class="w-14 h-14 mx-auto rounded-2xl bg-[#700028]/20 border border-[#700028]/40 flex items-center justify-center text-red-300 font-bold shadow-lg">
           <i data-lucide="wrench" class="w-7 h-7"></i>
@@ -42,13 +40,11 @@
         <p class="text-xs text-slate-300 font-medium">Connexion Unique - Service Technique</p>
       </div>
 
-      <!-- Auth Error Alert -->
       <div id="auth-error-alert" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center space-x-2">
         <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
         <span id="auth-error-text">Nom d'utilisateur ou mot de passe incorrect.</span>
       </div>
 
-      <!-- Shared Credentials Form -->
       <form id="auth-form" onsubmit="handleSharedLoginSubmit(event)" class="space-y-4">
         <div>
           <label class="block text-[10px] uppercase font-bold text-slate-300 mb-1">Nom d'Utilisateur</label>
@@ -130,15 +126,9 @@
         class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors shadow-sm">
     </div>
 
-    <!-- CATEGORIES FILTER -->
-    <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
-      <button onclick="filterCategory('todos')" class="cat-btn bg-amber-500 text-slate-950 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap shadow-md transition-all">Tous</button>
-      <button onclick="filterCategory('plomberie')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Plomberie</button>
-      <button onclick="filterCategory('electrique')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Électrique</button>
-      <button onclick="filterCategory('mobilier')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Mobilier</button>
-      <button onclick="filterCategory('peinture')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Peinture & Murs</button>
-      <button onclick="filterCategory('tv')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">TV & Multimédia</button>
-      <button onclick="filterCategory('serrurerie')" class="cat-btn bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">Serrurerie</button>
+    <!-- CATEGORIES FILTER CONTAINER (GERADO DINAMICAMENTE) -->
+    <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+      <!-- Preenchido dinamicamente -->
     </div>
 
     <!-- ISSUES GRID -->
@@ -254,14 +244,14 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Catégorie</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[10px] text-slate-400 uppercase font-bold">Catégorie</label>
+              <button type="button" onclick="openCategoryManager()" class="text-[10px] text-amber-400 hover:underline flex items-center">
+                <i data-lucide="settings" class="w-3 h-3 mr-1"></i> Gérer
+              </button>
+            </div>
             <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
-              <option value="plomberie">Plomberie</option>
-              <option value="electrique">Électrique</option>
-              <option value="mobilier">Mobilier</option>
-              <option value="peinture">Peinture & Murs</option>
-              <option value="tv">TV & Multimédia</option>
-              <option value="serrurerie">Serrurerie</option>
+              <!-- Preenchido dinamicamente -->
             </select>
           </div>
           <div>
@@ -292,6 +282,31 @@
     </div>
   </div>
 
+  <!-- CATEGORY MANAGER MODAL -->
+  <div id="category-manager-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-xs text-slate-100 flex items-center">
+          <i data-lucide="folder-cog" class="w-4 h-4 mr-2 text-amber-400"></i> Gérer les Catégories
+        </h3>
+        <button onclick="closeCategoryManager()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-4 space-y-4">
+        <div class="flex space-x-2">
+          <input type="text" id="new-category-input" placeholder="Nouvelle catégorie..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+          <button onclick="addNewCategory()" class="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs">Ajouter</button>
+        </div>
+
+        <div id="categories-management-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+          <!-- Preenchido dinamicamente -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- FIREBASE & REALTIME SYNC MODULE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -315,6 +330,17 @@
     let allIssues = [];
     let currentCategory = 'todos';
     let currentIssueId = null;
+
+    // Lista padrão de categorias incluindo "autres"
+    let categories = [
+      { id: 'plomberie', label: 'Plomberie' },
+      { id: 'electrique', label: 'Électrique' },
+      { id: 'mobilier', label: 'Mobilier' },
+      { id: 'peinture', label: 'Peinture & Murs' },
+      { id: 'tv', label: 'TV & Multimédia' },
+      { id: 'serrurerie', label: 'Serrurerie' },
+      { id: 'autres', label: 'Autres' }
+    ];
 
     const HARDCODED_USER = "st";
     const HARDCODED_PASS = "Lessines2026!";
@@ -345,8 +371,7 @@
         steps: [
           'Identifiez le disjoncteur divisionnaire tombé sur le coffret électrique.',
           'Débranchez tous les appareils reliés à cette ligne électrique.',
-          'Réarmez le disjoncteur. S\'il reste en haut, rebranchez un à un les appareils.',
-          'Si le disjoncteur saute instantanément sans appareil, ouvrez la prise pour vérifier les fils.'
+          'Réarmez le disjoncteur. S\'il reste en haut, rebranchez un à un les appareils.'
         ]
       }
     ];
@@ -380,12 +405,102 @@
       const isAuth = localStorage.getItem('cpas_st_auth');
       if (isAuth === 'true') {
         document.getElementById('auth-overlay').classList.add('hidden');
+        loadSavedCategories();
+        renderCategoriesFilter();
+        renderCategorySelect();
         startFirestoreSync();
       } else {
         document.getElementById('auth-overlay').classList.remove('hidden');
         window.updateSyncBadge('error', 'Veuillez vous connecter');
       }
     }
+
+    // Gestão de Categorias no localStorage
+    function loadSavedCategories() {
+      const saved = localStorage.getItem('cpas_custom_categories');
+      if (saved) {
+        try { categories = JSON.parse(saved); } catch(e) {}
+      }
+    }
+
+    function saveCategoriesToStorage() {
+      localStorage.setItem('cpas_custom_categories', JSON.stringify(categories));
+    }
+
+    window.renderCategoriesFilter = function() {
+      const container = document.getElementById('categories-filter-container');
+      if (!container) return;
+      
+      let html = `<button onclick="filterCategory('todos')" class="cat-btn ${currentCategory === 'todos' ? 'bg-amber-500 text-slate-950 shadow-md' : 'bg-slate-900 text-slate-400 border border-slate-800'} px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all">Tous</button>`;
+      
+      categories.forEach(cat => {
+        const isActive = currentCategory === cat.id;
+        html += `<button onclick="filterCategory('${cat.id}')" class="cat-btn ${isActive ? 'bg-amber-500 text-slate-950 shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'} px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all">${cat.label}</button>`;
+      });
+
+      container.innerHTML = html;
+    };
+
+    window.renderCategorySelect = function() {
+      const select = document.getElementById('custom-category');
+      if (!select) return;
+      select.innerHTML = categories.map(cat => `<option value="${cat.id}">${cat.label}</option>`).join('');
+    };
+
+    window.openCategoryManager = function() {
+      renderCategoryManagerList();
+      document.getElementById('category-manager-modal').classList.remove('hidden');
+    };
+
+    window.closeCategoryManager = function() {
+      document.getElementById('category-manager-modal').classList.add('hidden');
+      renderCategoriesFilter();
+      renderCategorySelect();
+    };
+
+    function renderCategoryManagerList() {
+      const list = document.getElementById('categories-management-list');
+      list.innerHTML = categories.map(cat => `
+        <div class="flex items-center justify-between p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs">
+          <span class="text-slate-200 font-medium">${cat.label}</span>
+          <button onclick="removeCategory('${cat.id}')" class="text-red-400 hover:text-red-300 p-1">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      `).join('');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    window.addNewCategory = function() {
+      const input = document.getElementById('new-category-input');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const id = val.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      if (categories.some(c => c.id === id)) {
+        alert("Cette catégorie existe déjà !");
+        return;
+      }
+
+      categories.push({ id, label: val });
+      saveCategoriesToStorage();
+      input.value = '';
+      renderCategoryManagerList();
+      renderCategoriesFilter();
+      renderCategorySelect();
+    };
+
+    window.removeCategory = function(id) {
+      if (categories.length <= 1) {
+        alert("Vous devez conserver au moins une catégorie.");
+        return;
+      }
+      categories = categories.filter(c => c.id !== id);
+      saveCategoriesToStorage();
+      renderCategoryManagerList();
+      renderCategoriesFilter();
+      renderCategorySelect();
+    };
 
     window.updateSyncBadge = function(status, text) {
       const badge = document.getElementById('sync-badge');
@@ -459,6 +574,9 @@
 
       filtered.forEach(issue => {
         const activeMat = issue.materials || [];
+        const catObj = categories.find(c => c.id === issue.category);
+        const catLabel = catObj ? catObj.label : (issue.category || 'Général');
+
         const card = document.createElement('div');
         card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:border-slate-700 transition-all cursor-pointer active:scale-[0.99] shadow-md flex flex-col justify-between";
         card.onclick = () => window.openDetailModal(issue.id);
@@ -467,7 +585,7 @@
           <div>
             <div class="flex items-center justify-between mb-2.5">
               <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                ${issue.category || 'Général'}
+                ${catLabel}
               </span>
               <span class="text-[10px] text-slate-400 font-medium">
                 ${issue.difficulty || 'Facile'}
@@ -491,12 +609,7 @@
 
     window.filterCategory = function(cat) {
       currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.remove('bg-amber-500', 'text-slate-950', 'shadow-md');
-        btn.classList.add('bg-slate-900', 'text-slate-400', 'border', 'border-slate-800');
-      });
-      event.currentTarget.classList.remove('bg-slate-900', 'text-slate-400', 'border', 'border-slate-800');
-      event.currentTarget.classList.add('bg-amber-500', 'text-slate-950', 'shadow-md');
+      renderCategoriesFilter();
       window.renderIssues();
     };
 
@@ -505,12 +618,12 @@
       const issue = allIssues.find(i => i.id === id);
       if (!issue) return;
 
-      document.getElementById('modal-category').textContent = issue.category || 'Général';
+      const catObj = categories.find(c => c.id === issue.category);
+      document.getElementById('modal-category').textContent = catObj ? catObj.label : (issue.category || 'Général');
       document.getElementById('modal-time').innerHTML = `<i data-lucide="clock" class="w-3 h-3 mr-1"></i> ${issue.time || '15 min'}`;
       document.getElementById('modal-title').textContent = issue.title || 'Sans Titre';
       document.getElementById('modal-safety').textContent = issue.safety || 'Attention lors de l\'intervention.';
 
-      // Verificar se a categoria é "electrique" para mostrar o aviso a vermelho
       const unqualifiedAlert = document.getElementById('modal-unqualified-alert');
       if (issue.category === 'electrique') {
         unqualifiedAlert.classList.remove('hidden');
@@ -561,6 +674,7 @@
     };
 
     window.openAddIssueModal = function() {
+      renderCategorySelect();
       document.getElementById('add-issue-modal').classList.remove('hidden');
     };
 
