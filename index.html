@@ -148,6 +148,84 @@
 
   </main>
 
+  <!-- DETAIL DRAWER / MODAL -->
+  <div id="detail-drawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex justify-end">
+    <div id="drawer-content" class="bg-slate-900 border-l border-slate-800 w-full max-w-lg h-full flex flex-col transform translate-y-full transition-transform duration-300 shadow-2xl">
+      <!-- Drawer Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span id="modal-category" class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20"></span>
+          <span id="modal-time" class="text-xs text-slate-400 flex items-center"></span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="deleteCurrentIssue()" class="p-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors" title="Supprimer cette tâche">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+          <button onclick="closeDetailModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drawer Scrollable Body -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+        <div>
+          <h2 id="modal-title" class="font-bold text-base text-slate-100 leading-snug"></h2>
+        </div>
+
+        <!-- Safety Warning Box -->
+        <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start space-x-3 text-amber-400">
+          <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
+          <div class="text-xs leading-relaxed">
+            <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
+            <p id="modal-safety" class="text-slate-300"></p>
+          </div>
+        </div>
+
+        <!-- Materials Section -->
+        <div class="space-y-2.5">
+          <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider flex items-center">
+            <i data-lucide="briefcase" class="w-3.5 h-3.5 mr-1.5 text-amber-400"></i> Matériel Requis
+          </h3>
+          <div id="materials-display-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- Populated -->
+          </div>
+        </div>
+
+        <!-- Instructions Button/Shortcut -->
+        <div class="pt-2">
+          <button onclick="openInstructionsModal()" class="w-full py-3 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-between transition-all">
+            <span class="flex items-center space-x-2">
+              <i data-lucide="list-checks" class="w-4 h-4"></i>
+              <span>Consulter la Procédure d'Intervention Pas-à-Pas</span>
+            </span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTRUCTIONS MODAL -->
+  <div id="instructions-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-xs text-slate-100 flex items-center">
+          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-amber-400"></i> Procédure d'Intervention
+        </h3>
+        <button onclick="closeInstructionsModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <ol id="instructions-steps-list" class="space-y-2.5 text-xs text-slate-300 list-decimal pl-4">
+          <!-- Populated -->
+        </ol>
+      </div>
+    </div>
+  </div>
+
   <!-- ADD NEW ISSUE MODAL -->
   <div id="add-issue-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
@@ -209,7 +287,7 @@
   <!-- FIREBASE & REALTIME SYNC MODULE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyACXjspbF8vSSFY4mIqhKy0LdaCRNSjsq4",
@@ -228,6 +306,7 @@
     let unsubscribeSync = null;
     let allIssues = [];
     let currentCategory = 'todos';
+    let currentIssueId = null;
 
     const HARDCODED_USER = "st";
     const HARDCODED_PASS = "Lessines2026!";
@@ -256,13 +335,7 @@
       const alertBox = document.getElementById('auth-error-alert');
 
       alertBox.classList.add('hidden');
-      let valid = false;
-
       if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
-        valid = true;
-      }
-
-      if (valid) {
         localStorage.setItem('cpas_st_auth', 'true');
         document.getElementById('auth-overlay').classList.add('hidden');
         startFirestoreSync();
@@ -364,7 +437,8 @@
       filtered.forEach(issue => {
         const activeMat = issue.materials || [];
         const card = document.createElement('div');
-        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md flex flex-col justify-between";
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:border-slate-700 transition-all cursor-pointer active:scale-[0.99] shadow-md flex flex-col justify-between";
+        card.onclick = () => window.openDetailModal(issue.id);
 
         card.innerHTML = `
           <div>
@@ -403,6 +477,58 @@
       window.renderIssues();
     };
 
+    window.openDetailModal = function(id) {
+      currentIssueId = id;
+      const issue = allIssues.find(i => i.id === id);
+      if (!issue) return;
+
+      document.getElementById('modal-category').textContent = issue.category || 'Général';
+      document.getElementById('modal-time').innerHTML = `<i data-lucide="clock" class="w-3 h-3 mr-1"></i> ${issue.time || '15 min'}`;
+      document.getElementById('modal-title').textContent = issue.title || 'Sans Titre';
+      document.getElementById('modal-safety').textContent = issue.safety || 'Attention lors de l\'intervention.';
+
+      const materialsContainer = document.getElementById('materials-display-container');
+      const activeMaterials = issue.materials || [];
+      materialsContainer.innerHTML = activeMaterials.map(mat => `
+        <label class="flex items-center space-x-2.5 p-2 rounded-xl bg-slate-950 border border-slate-800/80 cursor-pointer">
+          <input type="checkbox" class="rounded accent-amber-500 w-4 h-4 bg-slate-900 border-slate-700">
+          <span class="text-xs text-slate-200">${mat}</span>
+        </label>
+      `).join('');
+
+      const stepsContainer = document.getElementById('instructions-steps-list');
+      const activeSteps = issue.steps || [];
+      stepsContainer.innerHTML = activeSteps.map(step => `
+        <li class="p-2.5 rounded-lg bg-slate-950 border border-slate-800/60 leading-relaxed text-xs">${step}</li>
+      `).join('');
+
+      const drawer = document.getElementById('detail-drawer');
+      const content = document.getElementById('drawer-content');
+      
+      drawer.classList.remove('hidden');
+      setTimeout(() => {
+        content.classList.remove('translate-y-full');
+      }, 10);
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    };
+
+    window.closeDetailModal = function() {
+      const content = document.getElementById('drawer-content');
+      content.classList.add('translate-y-full');
+      setTimeout(() => {
+        document.getElementById('detail-drawer').classList.add('hidden');
+      }, 300);
+    };
+
+    window.openInstructionsModal = function() {
+      document.getElementById('instructions-modal').classList.remove('hidden');
+    };
+
+    window.closeInstructionsModal = function() {
+      document.getElementById('instructions-modal').classList.add('hidden');
+    };
+
     window.openAddIssueModal = function() {
       document.getElementById('add-issue-modal').classList.remove('hidden');
     };
@@ -432,6 +558,15 @@
 
       window.closeAddIssueModal();
       document.getElementById('add-issue-form').reset();
+    };
+
+    window.deleteCurrentIssue = async function() {
+      if (!currentIssueId) return;
+      if (!confirm("Voulez-vous vraiment supprimer cette tâche ?")) return;
+
+      const docRef = doc(db, 'tasks', currentIssueId);
+      await deleteDoc(docRef);
+      window.closeDetailModal();
     };
 
     document.addEventListener('DOMContentLoaded', () => {
