@@ -32,7 +32,6 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    /* Animações de Halloween */
     @keyframes float {
       0%, 100% { transform: translateY(0px) rotate(0deg); }
       50% { transform: translateY(-15px) rotate(5deg); }
@@ -41,12 +40,8 @@
       0%, 100% { text-shadow: 0 0 10px rgba(249, 115, 22, 0.6), 0 0 20px rgba(249, 115, 22, 0.4); }
       50% { text-shadow: 0 0 20px rgba(249, 115, 22, 0.9), 0 0 30px rgba(239, 68, 68, 0.8); }
     }
-    .halloween-float {
-      animation: float 3s ease-in-out infinite;
-    }
-    .halloween-glow {
-      animation: pulse-glow 2s ease-in-out infinite;
-    }
+    .halloween-float { animation: float 3s ease-in-out infinite; }
+    .halloween-glow { animation: pulse-glow 2s ease-in-out infinite; }
   </style>
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden antialiased">
@@ -137,6 +132,12 @@
     </div>
     
     <div class="flex items-center space-x-2">
+      <!-- BOTÃO À FAIRE -->
+      <button onclick="openAFaireModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
+        <i data-lucide="check-square" class="w-4 h-4"></i>
+        <span>À faire</span>
+      </button>
+
       <button onclick="openAddIssueModal()" class="flex items-center space-x-1.5 bg-orange-600 hover:bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
         <i data-lucide="plus" class="w-4 h-4"></i>
         <span class="hidden sm:inline">Nouvelle Tâche</span>
@@ -161,6 +162,8 @@
 
   <!-- MAIN APP CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 space-y-6 pb-24">
+
+    <!-- SEARCH SECTION -->
     <div class="relative max-w-2xl mx-auto md:mx-0">
       <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
         <i data-lucide="search" class="w-4 h-4"></i>
@@ -169,18 +172,75 @@
         class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
     </div>
 
+    <!-- CATEGORIES FILTER -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto"></div>
+      <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto">
+        <!-- Preenchido dinamicamente -->
+      </div>
       <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-orange-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
         <i data-lucide="settings-2" class="w-4 h-4"></i>
         <span>Gérer Catégories</span>
       </button>
     </div>
 
-    <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+    <!-- ISSUES GRID -->
+    <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <!-- Populated dynamically -->
+    </div>
+
   </main>
 
-  <!-- DETAIL DRAWER -->
+  <!-- MODAL À FAIRE (RAPIDE DE TERRENO) -->
+  <div id="afaire-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/30 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
+        <h3 class="font-bold text-xs sm:text-sm text-amber-400 flex items-center">
+          <i data-lucide="pin" class="w-4 h-4 mr-2 text-amber-400"></i> Nouvelle Note "À Faire"
+        </h3>
+        <button onclick="closeAFaireModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="afaire-form" onsubmit="handleAFaireSubmit(event)" class="p-4 sm:p-6 space-y-4">
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étage (Piso)</label>
+            <select id="afaire-floor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="Sous-sol">Sous-sol</option>
+              <option value="Rez-de-chaussée" selected>RDC (Rés-do-chão)</option>
+              <option value="1er étage">1er Étage</option>
+              <option value="2ème étage">2ème Étage</option>
+              <option value="3ème étage">3ème Étage</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Aile (Ala)</label>
+            <input type="text" id="afaire-wing" required placeholder="Ex: Aile A, Bloc B" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">N° Chambre</label>
+            <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Description du problème / Demande</label>
+          <textarea id="afaire-desc" rows="3" required placeholder="Ex: La poignée de la fenêtre est cassée, la résidente demande de repasser." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeAFaireModal()" class="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
+          <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20 active:scale-95 flex items-center space-x-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Enregistrer Note</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DETAIL DRAWER / MODAL -->
   <div id="detail-drawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex justify-end">
     <div id="drawer-content" class="bg-slate-900 border-t sm:border-t-0 sm:border-l border-slate-800 w-full sm:max-w-md md:max-w-lg h-[90vh] sm:h-full mt-auto sm:mt-0 rounded-t-3xl sm:rounded-none flex flex-col transform translate-y-full sm:translate-y-0 sm:translate-x-full transition-transform duration-300 shadow-2xl">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
@@ -256,13 +316,14 @@
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
+
       <div class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
         <ol id="instructions-steps-list" class="space-y-3 text-xs sm:text-sm text-slate-300 list-decimal pl-4"></ol>
       </div>
     </div>
   </div>
 
-  <!-- ADD / EDIT MODAL -->
+  <!-- ADD / EDIT ISSUE MODAL -->
   <div id="add-issue-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
@@ -276,6 +337,7 @@
 
       <form id="add-issue-form" onsubmit="handleNewIssueSubmit(event)" class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
         <input type="hidden" id="editing-issue-id" value="">
+        
         <div>
           <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Titre de la Panne / Tâche</label>
           <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
@@ -342,10 +404,10 @@
     </div>
   </div>
 
-  <!-- FIREBASE & LOGIC SCRIPT -->
+  <!-- FIREBASE & REALTIME SYNC MODULE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyACXjspbF8vSSFY4mIqhKy0LdaCRNSjsq4",
@@ -381,6 +443,18 @@
 
     const defaultIssues = [
       {
+        id: 'afaire-sample-1',
+        isNote: true,
+        floor: '1er étage',
+        wing: 'Aile B',
+        room: 'Ch. 104',
+        title: 'Note: Fuite d\'eau sous le lavabo',
+        category: 'plomberie',
+        status: 'À faire',
+        materials: ['Chiffon', 'Clé à molette'],
+        steps: ['Inspecter la tuyauterie', 'Changer le joint']
+      },
+      {
         id: 'plomb-1',
         category: 'plomberie',
         title: 'Fuite de Robinet / Lave-mains',
@@ -392,20 +466,6 @@
           'Fermez les robinets d\'arrivée d\'eau chaude et froide.',
           'Démontez le mousseur/brise-jet pour vérifier s\'il est entartré.',
           'Remplacez le joint défectueux ou appliquez du ruban Téflon sur le filetage.'
-        ]
-      },
-      {
-        id: 'elec-1',
-        category: 'electrique',
-        title: 'Prise / Disjoncteur Réarmé qui Saute',
-        time: '10-15 min',
-        difficulty: 'Moyenne',
-        safety: 'ATTENTION: Coupez le disjoncteur général avant de toucher au boîtier.',
-        materials: ['Tournevis isolé VDE', 'Multimètre / Testeur de tension', 'Lampe frontale'],
-        steps: [
-          'Identifiez le disjoncteur divisionnaire tombé sur le coffret électrique.',
-          'Débranchez tous les appareils reliés à cette ligne électrique.',
-          'Réarmez le disjoncteur. S\'il reste en haut, rebranchez un à un les appareils.'
         ]
       }
     ];
@@ -434,6 +494,7 @@
       if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
         localStorage.setItem('cpas_st_auth', 'true');
         document.getElementById('auth-overlay').classList.add('hidden');
+        
         playHalloweenIntro(() => {
           loadSavedCategories();
           renderCategoriesFilter();
@@ -561,6 +622,7 @@
       const badge = document.getElementById('sync-badge');
       const diagBanner = document.getElementById('diagnostic-banner');
       const diagText = document.getElementById('diagnostic-text');
+      
       if (!badge) return;
 
       if (status === 'online') {
@@ -578,10 +640,14 @@
 
     function startFirestoreSync() {
       window.updateSyncBadge('pending', 'Synchronisation...');
+
       unsubscribeSync = onSnapshot(tasksCollection, (snapshot) => {
         window.updateSyncBadge('online', 'En Direct');
+        
         const cloudIssues = [];
-        snapshot.forEach((docSnap) => { cloudIssues.push(docSnap.data()); });
+        snapshot.forEach((docSnap) => {
+          cloudIssues.push(docSnap.data());
+        });
 
         if (cloudIssues.length === 0 && !snapshot.metadata.fromCache) {
           defaultIssues.forEach(async (issue) => {
@@ -592,6 +658,7 @@
         } else if (cloudIssues.length > 0) {
           allIssues = cloudIssues;
         }
+
         window.renderIssues();
       }, (error) => {
         console.error("Firestore sync error:", error);
@@ -605,43 +672,143 @@
       container.innerHTML = '';
 
       const filtered = allIssues.filter(issue => {
-        const matchCategory = currentCategory === 'todos' || issue.category === currentCategory;
+        const matchCategory = currentCategory === 'todos' || issue.category === currentCategory || issue.isNote;
         const activeMat = issue.materials || [];
         const matchText = !filterText || 
           (issue.title && issue.title.toLowerCase().includes(filterText)) ||
+          (issue.room && issue.room.toLowerCase().includes(filterText)) ||
+          (issue.wing && issue.wing.toLowerCase().includes(filterText)) ||
           activeMat.some(m => m.toLowerCase().includes(filterText));
         return matchCategory && matchText;
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs sm:text-sm col-span-full">Aucun problème trouvé.</div>`;
+        container.innerHTML = `
+          <div class="text-center py-12 text-slate-500 text-xs sm:text-sm col-span-full">
+            Aucun problème trouvé.
+          </div>`;
         return;
       }
 
       filtered.forEach(issue => {
-        const activeMat = issue.materials || [];
-        const catObj = categories.find(c => c.id === issue.category);
-        const catLabel = catObj ? catObj.label : (issue.category || 'Général');
-
         const card = document.createElement('div');
-        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 hover:border-slate-700 transition-all cursor-pointer active:scale-[0.98] shadow-md flex flex-col justify-between space-y-3";
-        card.onclick = () => window.openDetailModal(issue.id);
 
-        card.innerHTML = `
-          <div>
-            <div class="flex items-center justify-between mb-2.5">
-              <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">${catLabel}</span>
-              <span class="text-[10px] sm:text-xs text-slate-400 font-medium">${issue.difficulty || 'Facile'}</span>
+        if (issue.isNote) {
+          // CARTÃO DE NOTA RÁPIDA "À FAIRE"
+          const statusColors = {
+            'À faire': 'bg-red-500/20 text-red-400 border-red-500/30',
+            'En cours': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+            'Terminé': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+          };
+          const currentStatus = issue.status || 'À faire';
+
+          card.className = "bg-amber-950/20 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 relative";
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center">
+                  <i data-lucide="pin" class="w-3 h-3 mr-1"></i> Demande Répide
+                </span>
+                <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${statusColors[currentStatus]}">
+                  ${currentStatus}
+                </span>
+              </div>
+              
+              <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-xs font-semibold text-amber-300 mb-2 flex items-center justify-between">
+                <span>📍 ${issue.floor || 'RDC'} • ${issue.wing || ''}</span>
+                <span class="text-white font-bold bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">${issue.room || ''}</span>
+              </div>
+
+              <p class="text-xs text-slate-200 leading-relaxed font-medium mb-3">${issue.title || ''}</p>
             </div>
-            <h3 class="font-bold text-xs sm:text-sm text-slate-100 mb-2.5 leading-snug">${issue.title || 'Sans Titre'}</h3>
-            <div class="flex flex-wrap gap-1 mb-1">
-              ${activeMat.slice(0, 3).map(m => `<span class="text-[10px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded-md border border-slate-800/80">${m}</span>`).join('')}
+
+            <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+              <select onchange="updateAFaireStatus('${issue.id}', this.value)" class="bg-slate-950 border border-slate-800 rounded-lg text-[11px] p-1.5 text-slate-300 focus:outline-none focus:border-amber-500 flex-1">
+                <option value="À faire" ${currentStatus === 'À faire' ? 'selected' : ''}>🔴 À faire</option>
+                <option value="En cours" ${currentStatus === 'En cours' ? 'selected' : ''}>🟠 En cours</option>
+                <option value="Terminé" ${currentStatus === 'Terminé' ? 'selected' : ''}>🟢 Terminé</option>
+              </select>
+
+              <button onclick="deleteCurrentTask('${issue.id}')" class="p-1.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20" title="Supprimer la note">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
             </div>
-          </div>
-        `;
+          `;
+        } else {
+          // CARTÃO PADRÃO DE TAREFA
+          const activeMat = issue.materials || [];
+          const catObj = categories.find(c => c.id === issue.category);
+          const catLabel = catObj ? catObj.label : (issue.category || 'Général');
+
+          card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 hover:border-slate-700 transition-all cursor-pointer active:scale-[0.98] shadow-md flex flex-col justify-between space-y-3";
+          card.onclick = () => window.openDetailModal(issue.id);
+
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                  ${catLabel}
+                </span>
+                <span class="text-[10px] sm:text-xs text-slate-400 font-medium">
+                  ${issue.difficulty || 'Facile'}
+                </span>
+              </div>
+              <h3 class="font-bold text-xs sm:text-sm text-slate-100 mb-2.5 leading-snug">${issue.title || 'Sans Titre'}</h3>
+              <div class="flex flex-wrap gap-1 mb-1">
+                ${activeMat.slice(0, 3).map(m => `
+                  <span class="text-[10px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded-md border border-slate-800/80">
+                    ${m}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
         container.appendChild(card);
       });
+
       if (typeof lucide !== 'undefined') lucide.createIcons();
+    };
+
+    window.openAFaireModal = function() {
+      document.getElementById('afaire-form').reset();
+      document.getElementById('afaire-modal').classList.remove('hidden');
+    };
+
+    window.closeAFaireModal = function() {
+      document.getElementById('afaire-modal').classList.add('hidden');
+    };
+
+    window.handleAFaireSubmit = async function(e) {
+      e.preventDefault();
+      const newId = 'note-' + Date.now();
+      const noteData = {
+        id: newId,
+        isNote: true,
+        floor: document.getElementById('afaire-floor').value,
+        wing: document.getElementById('afaire-wing').value,
+        room: document.getElementById('afaire-room').value,
+        title: document.getElementById('afaire-desc').value,
+        status: 'À faire',
+        updatedAt: Date.now(),
+        updatedBy: 'st'
+      };
+
+      const docRef = doc(db, 'tasks', newId);
+      await setDoc(docRef, noteData);
+
+      window.closeAFaireModal();
+    };
+
+    window.updateAFaireStatus = async function(id, newStatus) {
+      const docRef = doc(db, 'tasks', id);
+      await updateDoc(docRef, { status: newStatus, updatedAt: Date.now() });
+    };
+
+    window.deleteCurrentTask = async function(id) {
+      if (!confirm("Voulez-vous vraiment supprimer cette note ?")) return;
+      const docRef = doc(db, 'tasks', id);
+      await deleteDoc(docRef);
     };
 
     window.filterCategory = function(cat) {
@@ -653,7 +820,7 @@
     window.openDetailModal = function(id) {
       currentIssueId = id;
       const issue = allIssues.find(i => i.id === id);
-      if (!issue) return;
+      if (!issue || issue.isNote) return;
 
       const catObj = categories.find(c => c.id === issue.category);
       document.getElementById('modal-category').textContent = catObj ? catObj.label : (issue.category || 'Général');
@@ -679,23 +846,36 @@
 
       const stepsContainer = document.getElementById('instructions-steps-list');
       const activeSteps = issue.steps || [];
-      stepsContainer.innerHTML = activeSteps.map(step => `<li class="p-3 rounded-xl bg-slate-950 border border-slate-800/60 leading-relaxed text-xs sm:text-sm">${step}</li>`).join('');
+      stepsContainer.innerHTML = activeSteps.map(step => `
+        <li class="p-3 rounded-xl bg-slate-950 border border-slate-800/60 leading-relaxed text-xs sm:text-sm">${step}</li>
+      `).join('');
 
       const drawer = document.getElementById('detail-drawer');
       const content = document.getElementById('drawer-content');
+      
       drawer.classList.remove('hidden');
-      setTimeout(() => { content.classList.remove('translate-y-full', 'sm:translate-x-full'); }, 10);
+      setTimeout(() => {
+        content.classList.remove('translate-y-full', 'sm:translate-x-full');
+      }, 10);
+
       if (typeof lucide !== 'undefined') lucide.createIcons();
     };
 
     window.closeDetailModal = function() {
       const content = document.getElementById('drawer-content');
       content.classList.add('translate-y-full', 'sm:translate-x-full');
-      setTimeout(() => { document.getElementById('detail-drawer').classList.add('hidden'); }, 300);
+      setTimeout(() => {
+        document.getElementById('detail-drawer').classList.add('hidden');
+      }, 300);
     };
 
-    window.openInstructionsModal = function() { document.getElementById('instructions-modal').classList.remove('hidden'); };
-    window.closeInstructionsModal = function() { document.getElementById('instructions-modal').classList.add('hidden'); };
+    window.openInstructionsModal = function() {
+      document.getElementById('instructions-modal').classList.remove('hidden');
+    };
+
+    window.closeInstructionsModal = function() {
+      document.getElementById('instructions-modal').classList.add('hidden');
+    };
 
     window.openAddIssueModal = function() {
       document.getElementById('editing-issue-id').value = '';
@@ -709,6 +889,7 @@
     window.openEditCurrentIssue = function() {
       const issue = allIssues.find(i => i.id === currentIssueId);
       if (!issue) return;
+
       window.closeDetailModal();
       renderCategorySelect();
 
@@ -724,12 +905,15 @@
       document.getElementById('add-issue-modal').classList.remove('hidden');
     };
 
-    window.closeAddIssueModal = function() { document.getElementById('add-issue-modal').classList.add('hidden'); };
+    window.closeAddIssueModal = function() {
+      document.getElementById('add-issue-modal').classList.add('hidden');
+    };
 
     window.handleNewIssueSubmit = async function(e) {
       e.preventDefault();
       const editId = document.getElementById('editing-issue-id').value;
       const isEditing = Boolean(editId);
+
       const newId = isEditing ? editId : ('custom-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7));
       
       const issueData = {
@@ -747,14 +931,19 @@
 
       const docRef = doc(db, 'tasks', newId);
       await setDoc(docRef, issueData);
+
       window.closeAddIssueModal();
       document.getElementById('add-issue-form').reset();
-      if (isEditing) window.openDetailModal(newId);
+
+      if (isEditing) {
+        window.openDetailModal(newId);
+      }
     };
 
     window.deleteCurrentIssue = async function() {
       if (!currentIssueId) return;
       if (!confirm("Voulez-vous vraiment supprimer cette tâche ?")) return;
+
       const docRef = doc(db, 'tasks', currentIssueId);
       await deleteDoc(docRef);
       window.closeDetailModal();
@@ -762,10 +951,14 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       checkExistingSession();
+
       const searchEl = document.getElementById('search-input');
       if (searchEl) {
-        searchEl.addEventListener('input', function(e) { window.renderIssues(e.target.value.toLowerCase()); });
+        searchEl.addEventListener('input', function(e) {
+          window.renderIssues(e.target.value.toLowerCase());
+        });
       }
+
       if (typeof lucide !== 'undefined') lucide.createIcons();
     });
   </script>
