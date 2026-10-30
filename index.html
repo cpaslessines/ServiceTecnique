@@ -19,8 +19,8 @@
       color: #f8fafc;
       -webkit-tap-highlight-color: transparent;
     }
-    #auth-overlay {
-      background-image: linear-gradient(rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.85)), url('https://github.com/cpaslessines/ServiceTecnique/raw/8b6706cc9f7ee3cbd0e7fda68b2b30940b5ab4d8/Paisagem%20Art%C3%ADstica%20de%20Lessines.png');
+    #auth-overlay, #hub-navigation-screen {
+      background-image: linear-gradient(rgba(2, 6, 23, 0.85), rgba(2, 6, 23, 0.95)), url('https://github.com/cpaslessines/ServiceTecnique/raw/8b6706cc9f7ee3cbd0e7fda68b2b30940b5ab4d8/Paisagem%20Art%C3%ADstica%20de%20Lessines.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -106,7 +106,7 @@
 
         <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
           <i data-lucide="sparkles" class="w-4 h-4"></i>
-          <span>Se Connecter (Mode Halloween)</span>
+          <span>Se Connecter</span>
         </button>
       </form>
 
@@ -114,83 +114,138 @@
     </div>
   </div>
 
-  <!-- HEADER -->
-  <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm p-1 shrink-0">
-        <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS" class="w-full h-full object-contain">
-      </div>
-      <div>
-        <div class="flex items-center space-x-2">
-          <h1 id="app-company-name" class="font-bold text-xs sm:text-base tracking-tight text-slate-100">CPAS LESSINES 🎃</h1>
-          <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20">
-            <span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>Connexion...
-          </span>
+  <!-- HUB NAVIGATION SCREEN (Ecrã Inicial Pós-Login) -->
+  <div id="hub-navigation-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto hidden">
+    <div class="max-w-2xl w-full my-auto space-y-6 text-center">
+      
+      <div class="space-y-2">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-xl p-2 mb-2">
+          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS" class="w-full h-full object-contain">
         </div>
-        <p id="user-display-email" class="text-[10px] sm:text-xs text-slate-400 font-medium">Technicien ST</p>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Espace Service Technique</h2>
+        <p class="text-xs sm:text-sm text-slate-300">Veuillez sélectionner le mode de travail souhaité</p>
       </div>
-    </div>
-    
-    <div class="flex items-center space-x-2">
-      <!-- BOTÃO À FAIRE -->
-      <button onclick="openAFaireModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
-        <i data-lucide="check-square" class="w-4 h-4"></i>
-        <span>À faire</span>
-      </button>
 
-      <button onclick="openAddIssueModal()" class="flex items-center space-x-1.5 bg-orange-600 hover:bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
-        <i data-lucide="plus" class="w-4 h-4"></i>
-        <span class="hidden sm:inline">Nouvelle Tâche</span>
-      </button>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+        
+        <!-- BOTÃO 1: TÂCHES À ACCOMPLIR -->
+        <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-orange-500/40 hover:border-orange-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
+              <i data-lucide="wrench" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs text-orange-400 font-bold bg-orange-500/10 px-2.5 py-1 rounded-full border border-orange-500/20">Vue Complète</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-lg text-white mb-1 group-hover:text-orange-400 transition-colors">Tâches à Accomplir</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Accéder à toutes les pannes, fiches d'intervention et demandes rapides.</p>
+          </div>
+        </button>
 
-      <button onclick="handleSharedLogout()" title="Déconnexion" class="p-2 sm:p-2.5 bg-slate-900 border border-slate-800 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 text-slate-400 rounded-xl text-xs transition-all active:scale-95">
+        <!-- BOTÃO 2: GUIDE DU MÉTIER -->
+        <button onclick="navigateToView('demandes_rapides')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-amber-500/40 hover:border-amber-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+              <i data-lucide="bookmark-check" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">Terrain</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-lg text-white mb-1 group-hover:text-amber-400 transition-colors">Guide du métier</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Consulter uniquement les demandes rapides "À faire" (Étage, Aile, Chambre).</p>
+          </div>
+        </button>
+
+      </div>
+
+      <button onclick="handleSharedLogout()" class="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-red-400 transition-colors pt-4">
         <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span>Se déconnecter</span>
       </button>
-    </div>
-  </header>
 
-  <!-- DIAGNOSTIC BANNER -->
-  <div id="diagnostic-banner" class="bg-orange-500/10 border-b border-orange-500/20 px-4 py-2 text-xs flex items-center justify-between text-orange-300">
-    <div class="flex items-center space-x-2 overflow-hidden">
-      <i data-lucide="sparkles" class="w-4 h-4 text-orange-400 shrink-0"></i>
-      <span id="diagnostic-text" class="font-medium truncate">Mode Halloween actif - Session synchronisée !</span>
     </div>
-    <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-orange-400 hover:text-white p-1">
-      <i data-lucide="x" class="w-4 h-4"></i>
-    </button>
   </div>
 
-  <!-- MAIN APP CONTAINER -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 space-y-6 pb-24">
-
-    <!-- SEARCH SECTION -->
-    <div class="relative max-w-2xl mx-auto md:mx-0">
-      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-        <i data-lucide="search" class="w-4 h-4"></i>
+  <!-- INTERFACE PRINCIPAL -->
+  <div id="app-main-interface" class="flex-1 flex flex-col hidden">
+    <!-- HEADER -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm p-1 shrink-0">
+          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS" class="w-full h-full object-contain">
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 id="app-company-name" class="font-bold text-xs sm:text-base tracking-tight text-slate-100">CPAS LESSINES 🎃</h1>
+            <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>Connexion...
+            </span>
+          </div>
+          <p id="current-view-label" class="text-[10px] sm:text-xs text-slate-400 font-medium">Technicien ST</p>
+        </div>
       </div>
-      <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, un équipement..." 
-        class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
-    </div>
+      
+      <div class="flex items-center space-x-2">
+        <button onclick="showHubNavigation()" class="p-2 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1" title="Retour au menu principal">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Menu</span>
+        </button>
 
-    <!-- CATEGORIES FILTER -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto">
-        <!-- Preenchido dinamicamente -->
+        <button onclick="openAFaireModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
+          <i data-lucide="check-square" class="w-4 h-4"></i>
+          <span>À faire</span>
+        </button>
+
+        <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1.5 bg-orange-600 hover:bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Nouvelle Tâche</span>
+        </button>
+
+        <button onclick="handleSharedLogout()" title="Déconnexion" class="p-2 sm:p-2.5 bg-slate-900 border border-slate-800 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 text-slate-400 rounded-xl text-xs transition-all active:scale-95">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
       </div>
-      <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-orange-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
-        <i data-lucide="settings-2" class="w-4 h-4"></i>
-        <span>Gérer Catégories</span>
+    </header>
+
+    <!-- DIAGNOSTIC BANNER -->
+    <div id="diagnostic-banner" class="bg-orange-500/10 border-b border-orange-500/20 px-4 py-2 text-xs flex items-center justify-between text-orange-300">
+      <div class="flex items-center space-x-2 overflow-hidden">
+        <i data-lucide="sparkles" class="w-4 h-4 text-orange-400 shrink-0"></i>
+        <span id="diagnostic-text" class="font-medium truncate">Mode Halloween actif - Session synchronisée !</span>
+      </div>
+      <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-orange-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-4 h-4"></i>
       </button>
     </div>
 
-    <!-- ISSUES GRID -->
-    <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      <!-- Populated dynamically -->
-    </div>
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 space-y-6 pb-24">
 
-  </main>
+      <!-- SEARCH BAR -->
+      <div class="relative max-w-2xl mx-auto md:mx-0">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <i data-lucide="search" class="w-4 h-4"></i>
+        </div>
+        <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, une chambre..." 
+          class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
+      </div>
 
-  <!-- MODAL À FAIRE (RAPIDE DE TERRENO) -->
+      <!-- CATEGORIES FILTER -->
+      <div id="categories-bar-wrapper" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto"></div>
+        <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-orange-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
+          <i data-lucide="settings-2" class="w-4 h-4"></i>
+          <span>Gérer Catégories</span>
+        </button>
+      </div>
+
+      <!-- ISSUES GRID -->
+      <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+
+    </main>
+  </div>
+
+  <!-- MODAL À FAIRE -->
   <div id="afaire-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-amber-500/30 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
@@ -427,6 +482,7 @@
     let allIssues = [];
     let currentCategory = 'todos';
     let currentIssueId = null;
+    let activeMode = 'all';
 
     let categories = [
       { id: 'plomberie', label: 'Plomberie' },
@@ -496,14 +552,42 @@
         document.getElementById('auth-overlay').classList.add('hidden');
         
         playHalloweenIntro(() => {
-          loadSavedCategories();
-          renderCategoriesFilter();
-          renderCategorySelect();
+          showHubNavigation();
           startFirestoreSync();
         });
       } else {
         alertBox.classList.remove('hidden');
       }
+    };
+
+    window.showHubNavigation = function() {
+      document.getElementById('app-main-interface').classList.add('hidden');
+      document.getElementById('hub-navigation-screen').classList.remove('hidden');
+    };
+
+    window.navigateToView = function(mode) {
+      activeMode = mode;
+      document.getElementById('hub-navigation-screen').classList.add('hidden');
+      document.getElementById('app-main-interface').classList.remove('hidden');
+
+      const labelEl = document.getElementById('current-view-label');
+      const catWrapper = document.getElementById('categories-bar-wrapper');
+      const btnNouvelleTache = document.getElementById('btn-nouvelle-tache');
+
+      if (mode === 'demandes_rapides') {
+        labelEl.textContent = "Guide du métier • Demandes Rapides";
+        catWrapper.classList.add('hidden');
+        btnNouvelleTache.classList.add('hidden');
+      } else {
+        labelEl.textContent = "Technicien ST • Tâches à Accomplir";
+        catWrapper.classList.remove('hidden');
+        btnNouvelleTache.classList.remove('hidden');
+      }
+
+      loadSavedCategories();
+      renderCategoriesFilter();
+      renderCategorySelect();
+      window.renderIssues();
     };
 
     window.handleSharedLogout = function() {
@@ -514,6 +598,8 @@
           unsubscribeSync = null;
         }
         document.getElementById('auth-form').reset();
+        document.getElementById('app-main-interface').classList.add('hidden');
+        document.getElementById('hub-navigation-screen').classList.add('hidden');
         document.getElementById('auth-overlay').classList.remove('hidden');
       }
     };
@@ -522,9 +608,7 @@
       const isAuth = localStorage.getItem('cpas_st_auth');
       if (isAuth === 'true') {
         document.getElementById('auth-overlay').classList.add('hidden');
-        loadSavedCategories();
-        renderCategoriesFilter();
-        renderCategorySelect();
+        showHubNavigation();
         startFirestoreSync();
       } else {
         document.getElementById('auth-overlay').classList.remove('hidden');
@@ -672,6 +756,10 @@
       container.innerHTML = '';
 
       const filtered = allIssues.filter(issue => {
+        if (activeMode === 'demandes_rapides') {
+          if (!issue.isNote) return false;
+        }
+
         const matchCategory = currentCategory === 'todos' || issue.category === currentCategory || issue.isNote;
         const activeMat = issue.materials || [];
         const matchText = !filterText || 
@@ -685,7 +773,7 @@
       if (filtered.length === 0) {
         container.innerHTML = `
           <div class="text-center py-12 text-slate-500 text-xs sm:text-sm col-span-full">
-            Aucun problème trouvé.
+            Aucun élément trouvé dans cette vue.
           </div>`;
         return;
       }
@@ -694,7 +782,6 @@
         const card = document.createElement('div');
 
         if (issue.isNote) {
-          // CARTÃO DE NOTA RÁPIDA "À FAIRE"
           const statusColors = {
             'À faire': 'bg-red-500/20 text-red-400 border-red-500/30',
             'En cours': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
@@ -707,7 +794,7 @@
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center">
-                  <i data-lucide="pin" class="w-3 h-3 mr-1"></i> Demande Répide
+                  <i data-lucide="pin" class="w-3 h-3 mr-1"></i> Demande Rapide
                 </span>
                 <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${statusColors[currentStatus]}">
                   ${currentStatus}
@@ -735,7 +822,6 @@
             </div>
           `;
         } else {
-          // CARTÃO PADRÃO DE TAREFA
           const activeMat = issue.materials || [];
           const catObj = categories.find(c => c.id === issue.category);
           const catLabel = catObj ? catObj.label : (issue.category || 'Général');
