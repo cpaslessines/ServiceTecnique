@@ -43,6 +43,468 @@
     .halloween-float { animation: float 3s ease-in-out infinite; }
     .halloween-glow { animation: pulse-glow 2s ease-in-out infinite; }
   </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden antialiased">
+
+  <!-- HALLOWEEN TRANSITION OVERLAY -->
+  <div id="halloween-intro-overlay" class="fixed inset-0 z-[60] bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center hidden transition-opacity duration-700">
+    <div class="space-y-6 max-w-md w-full">
+      <div class="halloween-float text-6xl sm:text-7xl select-none">
+        🎃👻🦇
+      </div>
+      <div class="space-y-2">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-orange-500 halloween-glow tracking-wide">
+          Joyeux Halloween !
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-300 font-medium">
+          Service Technique - CPAS Lessines
+        </p>
+        <p class="text-[11px] text-slate-400 italic">
+          "Attention aux courts-circuits... et aux esprits farceurs dans les couloirs !"
+        </p>
+      </div>
+      <div class="w-48 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
+        <div class="h-full bg-orange-500 rounded-full animate-[pulse_1s_infinite] w-full"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARED USER LOGIN OVERLAY -->
+  <div id="auth-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto hidden">
+    <div class="max-w-md w-full bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
+      <div class="text-center space-y-3">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-lg p-2">
+          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS Lessines" class="w-full h-full object-contain">
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">CPAS LESSINES</h1>
+        <p class="text-xs sm:text-sm text-slate-300 font-medium">Connexion Unique - Service Technique 🎃</p>
+      </div>
+
+      <div id="auth-error-alert" class="hidden p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center space-x-2">
+        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+        <span id="auth-error-text">Nom d'utilisateur ou mot de passe incorrect.</span>
+      </div>
+
+      <form id="auth-form" onsubmit="handleSharedLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1.5">Nom d'Utilisateur</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
+            <input type="text" id="auth-username" required placeholder="st" autocomplete="username"
+              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1.5">Mot de Passe</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
+            <input type="password" id="auth-password" required placeholder="••••••••" autocomplete="current-password"
+              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
+          </div>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>Se Connecter</span>
+        </button>
+      </form>
+
+      <p class="text-[11px] text-center text-slate-400">Accès restreint au personnel autorisé (ST).</p>
+    </div>
+  </div>
+
+  <!-- HUB NAVIGATION SCREEN -->
+  <div id="hub-navigation-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div class="max-w-2xl w-full my-auto space-y-6 text-center">
+      
+      <div class="space-y-2">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-xl p-2 mb-2">
+          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS" class="w-full h-full object-contain">
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Espace Service Technique</h2>
+        <p class="text-xs sm:text-sm text-slate-300">Veuillez sélectionner le mode de travail souhaité</p>
+
+        <!-- FRASE MOTIVACIONAL DIÁRIA -->
+        <div class="pt-2 px-4 max-w-lg mx-auto">
+          <p id="daily-quote" class="text-xs sm:text-sm text-orange-400 italic font-medium bg-slate-900/60 border border-orange-500/20 py-2.5 px-4 rounded-2xl shadow-inner backdrop-blur-sm">
+            ✨ Chargement de la pensée du jour...
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+        <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-orange-500/40 hover:border-orange-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
+              <i data-lucide="book-open" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs text-orange-400 font-bold bg-orange-500/10 px-2.5 py-1 rounded-full border border-orange-500/20">Vue Complète</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-lg text-white mb-1 group-hover:text-orange-400 transition-colors">Guide du métier</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Accéder à toutes les pannes, fiches d'intervention pas-à-pas, matériel et catégories.</p>
+          </div>
+        </button>
+
+        <button onclick="navigateToView('demandes_rapides')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-amber-500/40 hover:border-amber-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+              <i data-lucide="check-square" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">Terrain & Historique</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-lg text-white mb-1 group-hover:text-amber-400 transition-colors">Tâches à Accomplir</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Consulter les demandes rapides du terrain et l'historique complet des tâches terminées.</p>
+          </div>
+        </button>
+      </div>
+
+      <button onclick="handleSharedLogout()" class="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-red-400 transition-colors pt-4">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span>Se déconnecter</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- INTERFACE PRINCIPAL -->
+  <div id="app-main-interface" class="flex-1 flex flex-col hidden">
+    <!-- HEADER -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm p-1 shrink-0">
+          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS" class="w-full h-full object-contain">
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 id="app-company-name" class="font-bold text-xs sm:text-base tracking-tight text-slate-100">CPAS LESSINES 🎃</h1>
+            <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>Connexion...
+            </span>
+          </div>
+          <p id="current-view-label" class="text-[10px] sm:text-xs text-slate-400 font-medium">Technicien ST</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <button onclick="showHubNavigation()" class="p-2 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1" title="Retour au menu principal">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Menu</span>
+        </button>
+
+        <button id="btn-afaire-header" onclick="openAFaireModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Ajouter Tâche</span>
+        </button>
+
+        <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1.5 bg-orange-600 hover:bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Nouvelle Astuce</span>
+        </button>
+
+        <button onclick="handleSharedLogout()" title="Déconnexion" class="p-2 sm:p-2.5 bg-slate-900 border border-slate-800 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 text-slate-400 rounded-xl text-xs transition-all active:scale-95">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- DIAGNOSTIC BANNER -->
+    <div id="diagnostic-banner" class="bg-orange-500/10 border-b border-orange-500/20 px-4 py-2 text-xs flex items-center justify-between text-orange-300">
+      <div class="flex items-center space-x-2 overflow-hidden">
+        <i data-lucide="sparkles" class="w-4 h-4 text-orange-400 shrink-0"></i>
+        <span id="diagnostic-text" class="font-medium truncate">Mode Halloween actif - Session synchronisée !</span>
+      </div>
+      <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-orange-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 space-y-6 pb-24">
+
+      <!-- SEARCH BAR -->
+      <div class="relative max-w-2xl mx-auto md:mx-0">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <i data-lucide="search" class="w-4 h-4"></i>
+        </div>
+        <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, une chambre, un technicien..." 
+          class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
+      </div>
+
+      <!-- STATUS FILTER BAR -->
+      <div id="status-filter-wrapper" class="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none hidden">
+        <span class="text-xs font-bold text-slate-400 uppercase mr-1">Statut:</span>
+        <button onclick="filterStatus('all')" id="status-btn-all" class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition-all">Tous</button>
+        <button onclick="filterStatus('À faire')" id="status-btn-afaire" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all">🔴 À faire</button>
+        <button onclick="filterStatus('En cours')" id="status-btn-encours" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all">🟠 En cours</button>
+        <button onclick="filterStatus('Terminé')" id="status-btn-termine" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all">🟢 Historique</button>
+      </div>
+
+      <!-- CATEGORIES FILTER -->
+      <div id="categories-bar-wrapper" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto"></div>
+        <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-orange-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
+          <i data-lucide="settings-2" class="w-4 h-4"></i>
+          <span>Gérer Catégories</span>
+        </button>
+      </div>
+
+      <!-- ISSUES GRID -->
+      <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+
+    </main>
+  </div>
+
+  <!-- MODAL SÉLECTION TECHNICIEN -->
+  <div id="technician-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
+        <h3 class="font-bold text-xs sm:text-sm text-amber-400 flex items-center">
+          <i data-lucide="user-check" class="w-4 h-4 mr-2 text-amber-400"></i> Technicien en Charge
+        </h3>
+        <button onclick="closeTechnicianModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="technician-form" onsubmit="handleTechnicianSubmit(event)" class="p-4 space-y-4">
+        <input type="hidden" id="tech-task-id" value="">
+        <input type="hidden" id="tech-target-status" value="">
+
+        <div>
+          <label class="block text-[11px] text-slate-400 uppercase font-bold mb-1.5">Nom du Technicien</label>
+          <input type="text" id="tech-name-input" required placeholder="Entrez le nom du technicien..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeTechnicianModal()" class="px-3.5 py-2 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-md shadow-amber-500/20 active:scale-95 flex items-center space-x-1">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Valider</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL À FAIRE -->
+  <div id="afaire-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/30 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
+        <h3 class="font-bold text-xs sm:text-sm text-amber-400 flex items-center">
+          <i data-lucide="pin" class="w-4 h-4 mr-2 text-amber-400"></i> Nouvelle Tâche "À Faire"
+        </h3>
+        <button onclick="closeAFaireModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="afaire-form" onsubmit="handleAFaireSubmit(event)" class="p-4 sm:p-6 space-y-4">
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étage (Piso)</label>
+            <select id="afaire-floor" onchange="handleFloorChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="Sous-sol">Sous-sol</option>
+              <option value="Rez-de-chaussée" selected>RDC (Rés-do-chão)</option>
+              <option value="1er étage">1er Étage</option>
+              <option value="2ème étage">2ème Étage</option>
+              <option value="3ème étage">3ème Étage</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Aile (Ala)</label>
+            <input type="text" id="afaire-wing" required placeholder="Ex: AILE A" oninput="this.value = this.value.toUpperCase();" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500 transition-all">
+          </div>
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">N° Chambre</label>
+            <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Description du problème / Demande</label>
+          <textarea id="afaire-desc" rows="3" required placeholder="Ex: La poignée de la fenêtre est cassée, la résidente demande de repasser." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeAFaireModal()" class="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
+          <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20 active:scale-95 flex items-center space-x-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Enregistrer Note</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DETAIL DRAWER / MODAL -->
+  <div id="detail-drawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex justify-end">
+    <div id="drawer-content" class="bg-slate-900 border-t sm:border-t-0 sm:border-l border-slate-800 w-full sm:max-w-md md:max-w-lg h-[90vh] sm:h-full mt-auto sm:mt-0 rounded-t-3xl sm:rounded-none flex flex-col transform translate-y-full sm:translate-y-0 sm:translate-x-full transition-transform duration-300 shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-2">
+          <span id="modal-category" class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20"></span>
+          <span id="modal-time" class="text-xs text-slate-400 flex items-center"></span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="openEditCurrentIssue()" class="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500/20 transition-colors" title="Modifier cette astuce">
+            <i data-lucide="edit-3" class="w-4 h-4"></i>
+          </button>
+          <button onclick="closeDetailModal()" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+        <div>
+          <h2 id="modal-title" class="font-bold text-base sm:text-lg text-slate-100 leading-snug"></h2>
+        </div>
+
+        <div id="modal-safety-container" class="p-3.5 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-start space-x-3 text-orange-400">
+          <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
+          <div class="text-xs leading-relaxed">
+            <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
+            <p id="modal-safety" class="text-slate-300"></p>
+          </div>
+        </div>
+
+        <div id="modal-unqualified-alert" class="hidden p-3.5 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start space-x-3 text-red-400">
+          <i data-lucide="shield-alert" class="w-4 h-4 mt-0.5 shrink-0"></i>
+          <div class="text-xs leading-relaxed font-semibold">
+            <span>Si vous n'êtes pas qualifié pour manipuler des systèmes électriques, vous devez en informer votre supérieur.</span>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider flex items-center">
+            <i data-lucide="briefcase" class="w-4 h-4 mr-2 text-orange-400"></i> Matériel Requis
+          </h3>
+          <div id="materials-display-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+        </div>
+
+        <div class="pt-2">
+          <button onclick="openInstructionsModal()" class="w-full py-3.5 px-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold text-xs sm:text-sm flex items-center justify-between transition-all active:scale-95">
+            <span class="flex items-center space-x-2">
+              <i data-lucide="list-checks" class="w-4 h-4"></i>
+              <span>Consulter la Procédure Pas-à-Pas</span>
+            </span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="pt-6 border-t border-slate-800/80">
+          <button onclick="deleteCurrentIssue()" class="w-full py-3 px-4 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-semibold text-xs flex items-center justify-center space-x-2 transition-all active:scale-95">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>Supprimer cette astuce</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTRUCTIONS MODAL -->
+  <div id="instructions-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
+          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-orange-400"></i> Procédure d'Intervention
+        </h3>
+        <button onclick="closeInstructionsModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <ol id="instructions-steps-list" class="space-y-3 text-xs sm:text-sm text-slate-300 list-decimal pl-4"></ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD / EDIT ASTUCE MODAL -->
+  <div id="add-issue-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <h3 id="modal-form-title" class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
+          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-orange-400"></i> Ajouter une Nouvelle Astuce
+        </h3>
+        <button onclick="closeAddIssueModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="add-issue-form" onsubmit="handleNewIssueSubmit(event)" class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <input type="hidden" id="editing-issue-id" value="">
+        
+        <div>
+          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Titre de l'Astuce / Intervention</label>
+          <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold">Catégorie</label>
+              <button type="button" onclick="openCategoryManager()" class="text-[10px] text-orange-400 hover:underline flex items-center">
+                <i data-lucide="settings" class="w-3 h-3 mr-1"></i> Gérer
+              </button>
+            </div>
+            <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500"></select>
+          </div>
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Difficulté</label>
+            <select id="custom-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
+              <option value="Facile">Facile</option>
+              <option value="Moyenne">Moyenne</option>
+              <option value="Difficile">Difficile</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Matériel Requis (séparé par des virgules)</label>
+          <input type="text" id="custom-materials" required placeholder="Ex: Tournevis, Ampoule LED E27, Escabeau" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
+        </div>
+
+        <div>
+          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étapes de l'Intervention (une par ligne)</label>
+          <textarea id="custom-steps" rows="3" required placeholder="Étape 1&#10;Étape 2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500"></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeAddIssueModal()" class="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
+          <button type="submit" id="form-submit-btn" class="px-5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-600/20 active:scale-95">Créer l'Astuce</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CATEGORY MANAGER MODAL -->
+  <div id="category-manager-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
+          <i data-lucide="folder-cog" class="w-4 h-4 mr-2 text-orange-400"></i> Gérer les Catégories
+        </h3>
+        <button onclick="closeCategoryManager()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-4 space-y-4">
+        <div class="flex space-x-2">
+          <input type="text" id="new-category-input" placeholder="Nouvelle catégorie..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
+          <button onclick="addNewCategory()" class="px-3.5 py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl text-xs sm:text-sm active:scale-95">Ajouter</button>
+        </div>
+
+        <div id="categories-management-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE & REALTIME SYNC MODULE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -97,31 +559,17 @@
         steps: ['Inspecter la tuyauterie', 'Changer le joint']
       },
       {
-        id: 'plomb-1',
-        category: 'plomberie',
-        title: 'Fuite de Robinet / Lave-mains',
-        time: '15-30 min',
-        difficulty: 'Facile',
-        safety: 'Coupez l\'eau au robinet d\'arrêt sous le lavabo avant d\'intervenir.',
-        materials: ['Chiffon microfibre', 'Clé anglaise / Clé à molette', 'Joints toriques de rechange', 'Ruban Téflon'],
-        steps: [
-          'Fermez les robinets d\'arrivée d\'eau chaude et froide.',
-          'Démontez le mousseur/brise-jet pour vérifier s\'il est entartré.',
-          'Remplacez le joint défectueux ou appliquez du ruban Téflon sur le filetage.'
-        ]
-      },
-      {
         id: 'tv-1',
         category: 'tv',
         title: 'Problème de Signal TV',
-        time: '15-20 min',
+        time: '15 min',
         difficulty: 'Facile',
-        safety: 'Débranchez les équipements électriques avant toute manipulation de câbles.',
-        materials: ['Câble HDMI / Coaxial', 'Télécommande de rechange'],
+        safety: 'Débranchez les appareils électriques avant toute manipulation de câbles endommagés.',
+        materials: ['Câble Coaxial', 'Télécommande universelle'],
         steps: [
-          'Vérifier les branchements derrière la télévision et le décodeur.',
+          'Vérifier le branchement du câble d\'antenne.',
           'Fixer le bras de TV au mur.',
-          'Redémarrer le décodeur ou la télévision.'
+          'Relancer une recherche automatique des chaînes sur le téléviseur.'
         ]
       }
     ];
@@ -140,7 +588,36 @@
       }, 2500);
     }
 
-    window.handleSharedLoginSubmit = function(e) {
+    // LISTA DE FRASES MOTIVACIONAIS DIÁRIAS
+    function updateDailyQuote() {
+      const quotes = [
+        "🔨 « Aucune panne ne résiste à une équipe souriante et bien outillée ! »",
+        "💡 « Chaque problème a sa solution, et aujourd'hui c'est vous la solution. Bon boulot ! »",
+        "⚙️ « Un petit geste technique aujourd'hui apporte un grand sourire aux résidents. »",
+        "🚀 « Rien n'est impossible pour l'équipe du Service Technique du CPAS ! »",
+        "☕ « Un bon café, un tournevis et une dose de bonne humeur : la journée commence parfaitement. »",
+        "🌟 « Votre travail de l'ombre éclaire et réchauffe le quotidien de tous. Merci ! »",
+        "🛠️ « Un problème détecté est à moitié réparé. Vous faites un travail fantastique ! »",
+        "☀️ « Gardez le sourire : même la vis la plus coincée finit toujours par céder ! »",
+        "🤝 « Ensemble, on va plus loin et on répare plus vite. Très belle journée à l'équipe ! »",
+        "🔑 « La clé du succès aujourd'hui ? La patience, l'entraide et votre savoir-faire. »",
+        "🏆 « Les héros ne portent pas tous une cape, certains portent une boîte à outils ! »"
+      ];
+
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 0);
+      const diff = now - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      const dayOfYear = Math.floor(diff / oneDay);
+
+      const quoteIndex = dayOfYear % quotes.length;
+      const quoteEl = document.getElementById('daily-quote');
+      if (quoteEl) {
+        quoteEl.textContent = quotes[quoteIndex];
+      }
+    }
+
+    window.handleSharedLoginSubmit = async function(e) {
       e.preventDefault();
       const userVal = document.getElementById('auth-username').value.trim();
       const passVal = document.getElementById('auth-password').value.trim();
@@ -163,6 +640,7 @@
     window.showHubNavigation = function() {
       document.getElementById('app-main-interface').classList.add('hidden');
       document.getElementById('hub-navigation-screen').classList.remove('hidden');
+      updateDailyQuote();
     };
 
     window.navigateToView = function(mode) {
@@ -356,15 +834,7 @@
         
         const cloudIssues = [];
         snapshot.forEach((docSnap) => {
-          let itemData = docSnap.data();
-          // Atualização automática de textos antigos se existirem no Firestore
-          if (itemData.id === 'tv-1' || itemData.title === 'Problème de Signal TV / Décodeur Coincé') {
-            itemData.title = 'Problème de Signal TV';
-            if (itemData.steps) {
-              itemData.steps = itemData.steps.map(s => s === 'Fixer le bras du téléviseur au mur.' ? 'Fixer le bras de TV au mur.' : s);
-            }
-          }
-          cloudIssues.push(itemData);
+          cloudIssues.push(docSnap.data());
         });
 
         if (cloudIssues.length === 0 && !snapshot.metadata.fromCache) {
@@ -374,7 +844,21 @@
           });
           allIssues = [...defaultIssues];
         } else if (cloudIssues.length > 0) {
-          allIssues = cloudIssues;
+          allIssues = cloudIssues.map(issue => {
+            // Atualização de títulos antigos da base de dados se necessário
+            if (issue.id === 'tv-1' || issue.title?.includes('/ Décodeur Coincé')) {
+              return {
+                ...issue,
+                title: 'Problème de Signal TV',
+                steps: [
+                  'Vérifier le branchement du câble d\'antenne.',
+                  'Fixer le bras de TV au mur.',
+                  'Relancer une recherche automatique des chaînes sur le téléviseur.'
+                ]
+              };
+            }
+            return issue;
+          });
         }
 
         window.renderIssues();
@@ -442,12 +926,13 @@
               </div>
               
               <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-xs font-semibold text-amber-300 mb-2 flex items-center justify-between">
-                <span>📍 ${issue.floor || 'RDC'}${issue.wing ? ' • ' + issue.wing : ''}</span>
+                <span>📍 ${issue.floor || 'RDC'} ${issue.wing ? '• ' + issue.wing : ''}</span>
                 <span class="text-white font-bold bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">${issue.room || ''}</span>
               </div>
 
               <p class="text-xs text-slate-200 leading-relaxed font-medium mb-2 ${currentStatus === 'Terminé' ? 'line-through text-slate-400' : ''}">${issue.title || ''}</p>
               
+              <!-- TÉCNICO RESPONSÁVEL -->
               ${issue.technician ? `
                 <div class="inline-flex items-center space-x-1 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg text-xs font-medium text-amber-300 mb-1">
                   <i data-lucide="user" class="w-3.5 h-3.5 text-amber-400"></i>
@@ -505,12 +990,7 @@
       if (typeof lucide !== 'undefined') lucide.createIcons();
     };
 
-    window.openAFaireModal = function() {
-      document.getElementById('afaire-form').reset();
-      handleFloorChange(document.getElementById('afaire-floor').value);
-      document.getElementById('afaire-modal').classList.remove('hidden');
-    };
-
+    // CONTROLO DO CAMPO AILE CONFORME O PISO
     window.handleFloorChange = function(floorValue) {
       const wingInput = document.getElementById('afaire-wing');
       if (!wingInput) return;
@@ -518,13 +998,21 @@
       if (floorValue === '3ème étage') {
         wingInput.value = '';
         wingInput.disabled = true;
-        wingInput.removeAttribute('required');
-        wingInput.placeholder = 'N/A (Pas d\'aile)';
+        wingInput.required = false;
+        wingInput.placeholder = "Pas d'aile au 3ème";
+        wingInput.classList.add('opacity-50', 'bg-slate-900');
       } else {
         wingInput.disabled = false;
-        wingInput.setAttribute('required', 'required');
-        wingInput.placeholder = 'Ex: Aile A, Bloc B';
+        wingInput.required = true;
+        wingInput.placeholder = "Ex: AILE A";
+        wingInput.classList.remove('opacity-50', 'bg-slate-900');
       }
+    };
+
+    window.openAFaireModal = function() {
+      document.getElementById('afaire-form').reset();
+      window.handleFloorChange(document.getElementById('afaire-floor').value);
+      document.getElementById('afaire-modal').classList.remove('hidden');
     };
 
     window.closeAFaireModal = function() {
@@ -534,7 +1022,7 @@
     window.handleAFaireSubmit = async function(e) {
       e.preventDefault();
       const floorVal = document.getElementById('afaire-floor').value;
-      const wingVal = floorVal === '3ème étage' ? '' : document.getElementById('afaire-wing').value.trim().toUpperCase();
+      const wingVal = floorVal === '3ème étage' ? '' : document.getElementById('afaire-wing').value.toUpperCase();
 
       const newId = 'note-' + Date.now();
       const noteData = {
@@ -760,458 +1248,5 @@
       if (typeof lucide !== 'undefined') lucide.createIcons();
     });
   </script>
-</head>
-<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden antialiased">
-
-  <!-- HALLOWEEN TRANSITION OVERLAY -->
-  <div id="halloween-intro-overlay" class="fixed inset-0 z-[60] bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center hidden transition-opacity duration-700">
-    <div class="space-y-6 max-w-md w-full">
-      <div class="halloween-float text-6xl sm:text-7xl select-none">
-        🎃👻🦇
-      </div>
-      <div class="space-y-2">
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-orange-500 halloween-glow tracking-wide">
-          Joyeux Halloween !
-        </h2>
-        <p class="text-xs sm:text-sm text-slate-300 font-medium">
-          Service Technique - CPAS Lessines
-        </p>
-        <p class="text-[11px] text-slate-400 italic">
-          "Attention aux courts-circuits... et aux esprits farceurs dans les couloirs !"
-        </p>
-      </div>
-      <div class="w-48 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
-        <div class="h-full bg-orange-500 rounded-full animate-[pulse_1s_infinite] w-full"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SHARED USER LOGIN OVERLAY -->
-  <div id="auth-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto hidden">
-    <div class="max-w-md w-full bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
-      <div class="text-center space-y-3">
-        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-lg p-2">
-          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS Lessines" class="w-full h-full object-contain">
-        </div>
-        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">CPAS LESSINES</h1>
-        <p class="text-xs sm:text-sm text-slate-300 font-medium">Connexion Unique - Service Technique 🎃</p>
-      </div>
-
-      <div id="auth-error-alert" class="hidden p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center space-x-2">
-        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
-        <span id="auth-error-text">Nom d'utilisateur ou mot de passe incorrect.</span>
-      </div>
-
-      <form id="auth-form" onsubmit="handleSharedLoginSubmit(event)" class="space-y-4">
-        <div>
-          <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1.5">Nom d'Utilisateur</label>
-          <div class="relative">
-            <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
-            <input type="text" id="auth-username" required placeholder="st" autocomplete="username"
-              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1.5">Mot de Passe</label>
-          <div class="relative">
-            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
-            <input type="password" id="auth-password" required placeholder="••••••••" autocomplete="current-password"
-              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
-          </div>
-        </div>
-
-        <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
-          <i data-lucide="sparkles" class="w-4 h-4"></i>
-          <span>Se Connecter</span>
-        </button>
-      </form>
-
-      <p class="text-[11px] text-center text-slate-400">Accès restreint au personnel autorisé (ST).</p>
-    </div>
-  </div>
-
-  <!-- HUB NAVIGATION SCREEN -->
-  <div id="hub-navigation-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto">
-    <div class="max-w-2xl w-full my-auto space-y-6 text-center">
-      
-      <div class="space-y-2">
-        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-xl p-2 mb-2">
-          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS" class="w-full h-full object-contain">
-        </div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Espace Service Technique</h2>
-        <p class="text-xs sm:text-sm text-slate-300">Veuillez sélectionner le mode de travail souhaité</p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-        <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-orange-500/40 hover:border-orange-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
-          <div class="flex items-center justify-between">
-            <div class="w-12 h-12 rounded-2xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
-              <i data-lucide="book-open" class="w-6 h-6"></i>
-            </div>
-            <span class="text-xs text-orange-400 font-bold bg-orange-500/10 px-2.5 py-1 rounded-full border border-orange-500/20">Vue Complète</span>
-          </div>
-          <div>
-            <h3 class="font-bold text-lg text-white mb-1 group-hover:text-orange-400 transition-colors">Guide du métier</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">Accéder à toutes les pannes, fiches d'intervention pas-à-pas, matériel et catégories.</p>
-          </div>
-        </button>
-
-        <button onclick="navigateToView('demandes_rapides')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-amber-500/40 hover:border-amber-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
-          <div class="flex items-center justify-between">
-            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-              <i data-lucide="check-square" class="w-6 h-6"></i>
-            </div>
-            <span class="text-xs text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">Terrain & Historique</span>
-          </div>
-          <div>
-            <h3 class="font-bold text-lg text-white mb-1 group-hover:text-amber-400 transition-colors">Tâches à Accomplir</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">Consulter les demandes rapides du terrain et l'historique complet des tâches terminées.</p>
-          </div>
-        </button>
-      </div>
-
-      <button onclick="handleSharedLogout()" class="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-red-400 transition-colors pt-4">
-        <i data-lucide="log-out" class="w-4 h-4"></i>
-        <span>Se déconnecter</span>
-      </button>
-
-    </div>
-  </div>
-
-  <!-- INTERFACE PRINCIPAL -->
-  <div id="app-main-interface" class="flex-1 flex flex-col hidden">
-    <!-- HEADER -->
-    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 px-4 sm:px-6 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm p-1 shrink-0">
-          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS" class="w-full h-full object-contain">
-        </div>
-        <div>
-          <div class="flex items-center space-x-2">
-            <h1 id="app-company-name" class="font-bold text-xs sm:text-base tracking-tight text-slate-100">CPAS LESSINES 🎃</h1>
-            <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              <span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>Connexion...
-            </span>
-          </div>
-          <p id="current-view-label" class="text-[10px] sm:text-xs text-slate-400 font-medium">Technicien ST</p>
-        </div>
-      </div>
-      
-      <div class="flex items-center space-x-2">
-        <button onclick="showHubNavigation()" class="p-2 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1" title="Retour au menu principal">
-          <i data-lucide="layout-grid" class="w-4 h-4"></i>
-          <span class="hidden md:inline">Menu</span>
-        </button>
-
-        <button id="btn-afaire-header" onclick="openAFaireModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i>
-          <span>Ajouter Tâche</span>
-        </button>
-
-        <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1.5 bg-orange-600 hover:bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">Nouvelle Astuce</span>
-        </button>
-
-        <button onclick="handleSharedLogout()" title="Déconnexion" class="p-2 sm:p-2.5 bg-slate-900 border border-slate-800 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 text-slate-400 rounded-xl text-xs transition-all active:scale-95">
-          <i data-lucide="log-out" class="w-4 h-4"></i>
-        </button>
-      </div>
-    </header>
-
-    <!-- DIAGNOSTIC BANNER -->
-    <div id="diagnostic-banner" class="bg-orange-500/10 border-b border-orange-500/20 px-4 py-2 text-xs flex items-center justify-between text-orange-300">
-      <div class="flex items-center space-x-2 overflow-hidden">
-        <i data-lucide="sparkles" class="w-4 h-4 text-orange-400 shrink-0"></i>
-        <span id="diagnostic-text" class="font-medium truncate">Mode Halloween actif - Session synchronisée !</span>
-      </div>
-      <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-orange-400 hover:text-white p-1">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
-    </div>
-
-    <!-- MAIN CONTAINER -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 space-y-6 pb-24">
-
-      <!-- SEARCH BAR -->
-      <div class="relative max-w-2xl mx-auto md:mx-0">
-        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-          <i data-lucide="search" class="w-4 h-4"></i>
-        </div>
-        <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, une chambre, un technicien..." 
-          class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
-      </div>
-
-      <!-- STATUS FILTER BAR -->
-      <div id="status-filter-wrapper" class="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none hidden">
-        <span class="text-xs font-bold text-slate-400 uppercase mr-1">Statut:</span>
-        <button onclick="filterStatus('all')" id="status-btn-all" class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition-all">Tous</button>
-        <button onclick="filterStatus('À faire')" id="status-btn-afaire" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all">🔴 À faire</button>
-        <button onclick="filterStatus('En cours')" id="status-btn-encours" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all">🟠 En cours</button>
-        <button onclick="filterStatus('Terminé')" id="status-btn-termine" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all">🟢 Historique</button>
-      </div>
-
-      <!-- CATEGORIES FILTER -->
-      <div id="categories-bar-wrapper" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto"></div>
-        <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-orange-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
-          <i data-lucide="settings-2" class="w-4 h-4"></i>
-          <span>Gérer Catégories</span>
-        </button>
-      </div>
-
-      <!-- ISSUES GRID -->
-      <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
-
-    </main>
-  </div>
-
-  <!-- MODAL SÉLECTION TECHNICIEN -->
-  <div id="technician-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-amber-500/40 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
-        <h3 class="font-bold text-xs sm:text-sm text-amber-400 flex items-center">
-          <i data-lucide="user-check" class="w-4 h-4 mr-2 text-amber-400"></i> Technicien en Charge
-        </h3>
-        <button onclick="closeTechnicianModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <form id="technician-form" onsubmit="handleTechnicianSubmit(event)" class="p-4 space-y-4">
-        <input type="hidden" id="tech-task-id" value="">
-        <input type="hidden" id="tech-target-status" value="">
-
-        <div>
-          <label class="block text-[11px] text-slate-400 uppercase font-bold mb-1.5">Nom du Technicien</label>
-          <input type="text" id="tech-name-input" required placeholder="Entrez le nom du technicien..." 
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
-        </div>
-
-        <div class="pt-2 flex justify-end space-x-2">
-          <button type="button" onclick="closeTechnicianModal()" class="px-3.5 py-2 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
-          <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-md shadow-amber-500/20 active:scale-95 flex items-center space-x-1">
-            <i data-lucide="check" class="w-4 h-4"></i>
-            <span>Valider</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL À FAIRE -->
-  <div id="afaire-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-amber-500/30 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
-      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
-        <h3 class="font-bold text-xs sm:text-sm text-amber-400 flex items-center">
-          <i data-lucide="pin" class="w-4 h-4 mr-2 text-amber-400"></i> Nouvelle Tâche "À Faire"
-        </h3>
-        <button onclick="closeAFaireModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <form id="afaire-form" onsubmit="handleAFaireSubmit(event)" class="p-4 sm:p-6 space-y-4">
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étage (Piso)</label>
-            <select id="afaire-floor" onchange="handleFloorChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
-              <option value="Sous-sol">Sous-sol</option>
-              <option value="Rez-de-chaussée" selected>RDC (Rés-do-chão)</option>
-              <option value="1er étage">1er Étage</option>
-              <option value="2ème étage">2ème Étage</option>
-              <option value="3ème étage">3ème Étage</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Aile (Ala)</label>
-            <input type="text" id="afaire-wing" required placeholder="Ex: Aile A" oninput="this.value = this.value.toUpperCase();" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed">
-          </div>
-          <div>
-            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">N° Chambre</label>
-            <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Description du problème / Demande</label>
-          <textarea id="afaire-desc" rows="3" required placeholder="Ex: La poignée de la fenêtre est cassée, la résidente demande de repasser." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
-        </div>
-
-        <div class="pt-2 flex justify-end space-x-2">
-          <button type="button" onclick="closeAFaireModal()" class="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
-          <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20 active:scale-95 flex items-center space-x-1.5">
-            <i data-lucide="check" class="w-4 h-4"></i>
-            <span>Enregistrer Note</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- DETAIL DRAWER / MODAL -->
-  <div id="detail-drawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex justify-end">
-    <div id="drawer-content" class="bg-slate-900 border-t sm:border-t-0 sm:border-l border-slate-800 w-full sm:max-w-md md:max-w-lg h-[90vh] sm:h-full mt-auto sm:mt-0 rounded-t-3xl sm:rounded-none flex flex-col transform translate-y-full sm:translate-y-0 sm:translate-x-full transition-transform duration-300 shadow-2xl">
-      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
-        <div class="flex items-center space-x-2">
-          <span id="modal-category" class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20"></span>
-          <span id="modal-time" class="text-xs text-slate-400 flex items-center"></span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="openEditCurrentIssue()" class="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500/20 transition-colors" title="Modifier cette astuce">
-            <i data-lucide="edit-3" class="w-4 h-4"></i>
-          </button>
-          <button onclick="closeDetailModal()" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-
-      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
-        <div>
-          <h2 id="modal-title" class="font-bold text-base sm:text-lg text-slate-100 leading-snug"></h2>
-        </div>
-
-        <div id="modal-safety-container" class="p-3.5 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-start space-x-3 text-orange-400">
-          <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
-          <div class="text-xs leading-relaxed">
-            <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
-            <p id="modal-safety" class="text-slate-300"></p>
-          </div>
-        </div>
-
-        <div id="modal-unqualified-alert" class="hidden p-3.5 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start space-x-3 text-red-400">
-          <i data-lucide="shield-alert" class="w-4 h-4 mt-0.5 shrink-0"></i>
-          <div class="text-xs leading-relaxed font-semibold">
-            <span>Si vous n'êtes pas qualifié pour manipuler des systèmes électriques, vous devez en informer votre supérieur.</span>
-          </div>
-        </div>
-
-        <div class="space-y-2.5">
-          <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider flex items-center">
-            <i data-lucide="briefcase" class="w-4 h-4 mr-2 text-orange-400"></i> Matériel Requis
-          </h3>
-          <div id="materials-display-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
-        </div>
-
-        <div class="pt-2">
-          <button onclick="openInstructionsModal()" class="w-full py-3.5 px-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold text-xs sm:text-sm flex items-center justify-between transition-all active:scale-95">
-            <span class="flex items-center space-x-2">
-              <i data-lucide="list-checks" class="w-4 h-4"></i>
-              <span>Consulter la Procédure Pas-à-Pas</span>
-            </span>
-            <i data-lucide="chevron-right" class="w-4 h-4"></i>
-          </button>
-        </div>
-
-        <div class="pt-6 border-t border-slate-800/80">
-          <button onclick="deleteCurrentIssue()" class="w-full py-3 px-4 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-semibold text-xs flex items-center justify-center space-x-2 transition-all active:scale-95">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-            <span>Supprimer cette astuce</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- INSTRUCTIONS MODAL -->
-  <div id="instructions-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
-      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
-        <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
-          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-orange-400"></i> Procédure d'Intervention
-        </h3>
-        <button onclick="closeInstructionsModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
-        <ol id="instructions-steps-list" class="space-y-3 text-xs sm:text-sm text-slate-300 list-decimal pl-4"></ol>
-      </div>
-    </div>
-  </div>
-
-  <!-- ADD / EDIT ASTUCE MODAL -->
-  <div id="add-issue-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
-        <h3 id="modal-form-title" class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
-          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-orange-400"></i> Ajouter une Nouvelle Astuce
-        </h3>
-        <button onclick="closeAddIssueModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <form id="add-issue-form" onsubmit="handleNewIssueSubmit(event)" class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
-        <input type="hidden" id="editing-issue-id" value="">
-        
-        <div>
-          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Titre de l'Astuce / Intervention</label>
-          <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold">Catégorie</label>
-              <button type="button" onclick="openCategoryManager()" class="text-[10px] text-orange-400 hover:underline flex items-center">
-                <i data-lucide="settings" class="w-3 h-3 mr-1"></i> Gérer
-              </button>
-            </div>
-            <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500"></select>
-          </div>
-          <div>
-            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Difficulté</label>
-            <select id="custom-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
-              <option value="Facile">Facile</option>
-              <option value="Moyenne">Moyenne</option>
-              <option value="Difficile">Difficile</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Matériel Requis (séparé par des virgules)</label>
-          <input type="text" id="custom-materials" required placeholder="Ex: Tournevis, Ampoule LED E27, Escabeau" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
-        </div>
-
-        <div>
-          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étapes de l'Intervention (une par ligne)</label>
-          <textarea id="custom-steps" rows="3" required placeholder="Étape 1&#10;Étape 2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500"></textarea>
-        </div>
-
-        <div class="pt-2 flex justify-end space-x-2">
-          <button type="button" onclick="closeAddIssueModal()" class="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
-          <button type="submit" id="form-submit-btn" class="px-5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-600/20 active:scale-95">Créer l'Astuce</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- CATEGORY MANAGER MODAL -->
-  <div id="category-manager-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0">
-        <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
-          <i data-lucide="folder-cog" class="w-4 h-4 mr-2 text-orange-400"></i> Gérer les Catégories
-        </h3>
-        <button onclick="closeCategoryManager()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <div class="p-4 space-y-4">
-        <div class="flex space-x-2">
-          <input type="text" id="new-category-input" placeholder="Nouvelle catégorie..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
-          <button onclick="addNewCategory()" class="px-3.5 py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl text-xs sm:text-sm active:scale-95">Ajouter</button>
-        </div>
-
-        <div id="categories-management-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
-      </div>
-    </div>
-  </div>
 </body>
 </html>
