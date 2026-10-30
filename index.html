@@ -114,7 +114,7 @@
     </div>
   </div>
 
-  <!-- HUB NAVIGATION SCREEN (ECRÃ APÓS LOGIN) -->
+  <!-- HUB NAVIGATION SCREEN -->
   <div id="hub-navigation-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto">
     <div class="max-w-2xl w-full my-auto space-y-6 text-center">
       
@@ -127,8 +127,6 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-        
-        <!-- BOTÃO 1: GUIDE DU MÉTIER -->
         <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-orange-500/40 hover:border-orange-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
           <div class="flex items-center justify-between">
             <div class="w-12 h-12 rounded-2xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
@@ -142,20 +140,18 @@
           </div>
         </button>
 
-        <!-- BOTÃO 2: TÂCHES À ACCOMPLIR -->
         <button onclick="navigateToView('demandes_rapides')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-amber-500/40 hover:border-amber-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
           <div class="flex items-center justify-between">
             <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
               <i data-lucide="check-square" class="w-6 h-6"></i>
             </div>
-            <span class="text-xs text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">Terrain</span>
+            <span class="text-xs text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">Terrain & Historique</span>
           </div>
           <div>
             <h3 class="font-bold text-lg text-white mb-1 group-hover:text-amber-400 transition-colors">Tâches à Accomplir</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">Consulter uniquement les demandes rapides du terrain "À faire" (Étage, Aile, Chambre).</p>
+            <p class="text-xs text-slate-400 leading-relaxed">Consulter les demandes rapides du terrain et l'historique complet des tâches terminées.</p>
           </div>
         </button>
-
       </div>
 
       <button onclick="handleSharedLogout()" class="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-red-400 transition-colors pt-4">
@@ -191,13 +187,11 @@
           <span class="hidden md:inline">Menu</span>
         </button>
 
-        <!-- BOTÃO À FAIRE (Disponível em Tâches à Accomplir) -->
         <button id="btn-afaire-header" onclick="openAFaireModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
-          <i data-lucide="check-square" class="w-4 h-4"></i>
-          <span>À faire</span>
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Ajouter Tâche</span>
         </button>
 
-        <!-- BOTÃO NOUVELLE ASTUCE (Disponível em Guide du métier) -->
         <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1.5 bg-orange-600 hover:bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
           <i data-lucide="plus" class="w-4 h-4"></i>
           <span class="hidden sm:inline">Nouvelle Astuce</span>
@@ -232,6 +226,15 @@
           class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
       </div>
 
+      <!-- STATUS FILTER BAR (APENAS EM TÂCHES À ACCOMPLIR) -->
+      <div id="status-filter-wrapper" class="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none hidden">
+        <span class="text-xs font-bold text-slate-400 uppercase mr-1">Statut:</span>
+        <button onclick="filterStatus('all')" id="status-btn-all" class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition-all">Tous</button>
+        <button onclick="filterStatus('À faire')" id="status-btn-afaire" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all">🔴 À faire</button>
+        <button onclick="filterStatus('En cours')" id="status-btn-encours" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all">🟠 En cours</button>
+        <button onclick="filterStatus('Terminé')" id="status-btn-termine" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all">🟢 Historique</button>
+      </div>
+
       <!-- CATEGORIES FILTER -->
       <div id="categories-bar-wrapper" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto"></div>
@@ -252,7 +255,7 @@
     <div class="bg-slate-900 border border-amber-500/30 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
         <h3 class="font-bold text-xs sm:text-sm text-amber-400 flex items-center">
-          <i data-lucide="pin" class="w-4 h-4 mr-2 text-amber-400"></i> Nouvelle Note "À Faire"
+          <i data-lucide="pin" class="w-4 h-4 mr-2 text-amber-400"></i> Nouvelle Tâche "À Faire"
         </h3>
         <button onclick="closeAFaireModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -483,6 +486,7 @@
     let unsubscribeSync = null;
     let allIssues = [];
     let currentCategory = 'todos';
+    let currentStatusFilter = 'all'; // 'all', 'À faire', 'En cours', 'Terminé'
     let currentIssueId = null;
     let activeMode = 'all';
 
@@ -509,6 +513,7 @@
         title: 'Note: Fuite d\'eau sous le lavabo',
         category: 'plomberie',
         status: 'À faire',
+        completedAt: null,
         materials: ['Chiffon', 'Clé à molette'],
         steps: ['Inspecter la tuyauterie', 'Changer le joint']
       },
@@ -574,17 +579,20 @@
 
       const labelEl = document.getElementById('current-view-label');
       const catWrapper = document.getElementById('categories-bar-wrapper');
+      const statusWrapper = document.getElementById('status-filter-wrapper');
       const btnNouvelleTache = document.getElementById('btn-nouvelle-tache');
       const btnAFaireHeader = document.getElementById('btn-afaire-header');
 
       if (mode === 'demandes_rapides') {
         labelEl.textContent = "Technicien ST • Tâches à Accomplir";
         catWrapper.classList.add('hidden');
+        statusWrapper.classList.remove('hidden');
         btnNouvelleTache.classList.add('hidden');
         btnAFaireHeader.classList.remove('hidden');
       } else {
         labelEl.textContent = "Technicien ST • Guide du métier";
         catWrapper.classList.remove('hidden');
+        statusWrapper.classList.add('hidden');
         btnNouvelleTache.classList.remove('hidden');
         btnAFaireHeader.classList.add('hidden');
       }
@@ -630,6 +638,26 @@
     function saveCategoriesToStorage() {
       localStorage.setItem('cpas_custom_categories', JSON.stringify(categories));
     }
+
+    window.filterStatus = function(status) {
+      currentStatusFilter = status;
+
+      const btns = ['all', 'afaire', 'encours', 'termine'];
+      btns.forEach(b => {
+        const el = document.getElementById(`status-btn-${b}`);
+        if (el) {
+          el.className = "bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all";
+        }
+      });
+
+      const activeMap = { 'all': 'all', 'À faire': 'afaire', 'En cours': 'encours', 'Terminé': 'termine' };
+      const activeEl = document.getElementById(`status-btn-${activeMap[status]}`);
+      if (activeEl) {
+        activeEl.className = "bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition-all shadow-md";
+      }
+
+      window.renderIssues();
+    };
 
     window.renderCategoriesFilter = function() {
       const container = document.getElementById('categories-filter-container');
@@ -763,6 +791,7 @@
       const filtered = allIssues.filter(issue => {
         if (activeMode === 'demandes_rapides') {
           if (!issue.isNote) return false;
+          if (currentStatusFilter !== 'all' && issue.status !== currentStatusFilter) return false;
         }
 
         const matchCategory = currentCategory === 'todos' || issue.category === currentCategory || issue.isNote;
@@ -794,12 +823,16 @@
           };
           const currentStatus = issue.status || 'À faire';
 
-          card.className = "bg-amber-950/20 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 relative";
+          card.className = currentStatus === 'Terminé' 
+            ? "bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between space-y-3 opacity-75 hover:opacity-100 transition-opacity"
+            : "bg-amber-950/20 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 relative";
+
           card.innerHTML = `
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center">
-                  <i data-lucide="pin" class="w-3 h-3 mr-1"></i> Demande Rapide
+                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full ${currentStatus === 'Terminé' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'} flex items-center">
+                  <i data-lucide="${currentStatus === 'Terminé' ? 'check-circle-2' : 'pin'}" class="w-3 h-3 mr-1"></i> 
+                  ${currentStatus === 'Terminé' ? 'Terminé (Historique)' : 'Demande Rapide'}
                 </span>
                 <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${statusColors[currentStatus]}">
                   ${currentStatus}
@@ -811,17 +844,19 @@
                 <span class="text-white font-bold bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">${issue.room || ''}</span>
               </div>
 
-              <p class="text-xs text-slate-200 leading-relaxed font-medium mb-3">${issue.title || ''}</p>
+              <p class="text-xs text-slate-200 leading-relaxed font-medium mb-1 ${currentStatus === 'Terminé' ? 'line-through text-slate-400' : ''}">${issue.title || ''}</p>
+              
+              ${issue.completedAt ? `<p class="text-[10px] text-emerald-400 italic">Terminé le : ${new Date(issue.completedAt).toLocaleDateString('fr-FR')}</p>` : ''}
             </div>
 
             <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
               <select onchange="updateAFaireStatus('${issue.id}', this.value)" class="bg-slate-950 border border-slate-800 rounded-lg text-[11px] p-1.5 text-slate-300 focus:outline-none focus:border-amber-500 flex-1">
                 <option value="À faire" ${currentStatus === 'À faire' ? 'selected' : ''}>🔴 À faire</option>
                 <option value="En cours" ${currentStatus === 'En cours' ? 'selected' : ''}>🟠 En cours</option>
-                <option value="Terminé" ${currentStatus === 'Terminé' ? 'selected' : ''}>🟢 Terminé</option>
+                <option value="Terminé" ${currentStatus === 'Terminé' ? 'selected' : ''}>🟢 Terminé (Archiver)</option>
               </select>
 
-              <button onclick="deleteCurrentTask('${issue.id}')" class="p-1.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20" title="Supprimer la note">
+              <button onclick="deleteCurrentTask('${issue.id}')" class="p-1.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20" title="Supprimer définitivement">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -881,6 +916,7 @@
         room: document.getElementById('afaire-room').value,
         title: document.getElementById('afaire-desc').value,
         status: 'À faire',
+        completedAt: null,
         updatedAt: Date.now(),
         updatedBy: 'st'
       };
@@ -893,11 +929,19 @@
 
     window.updateAFaireStatus = async function(id, newStatus) {
       const docRef = doc(db, 'tasks', id);
-      await updateDoc(docRef, { status: newStatus, updatedAt: Date.now() });
+      const updateData = { status: newStatus, updatedAt: Date.now() };
+      
+      if (newStatus === 'Terminé') {
+        updateData.completedAt = Date.now();
+      } else {
+        updateData.completedAt = null;
+      }
+
+      await updateDoc(docRef, updateData);
     };
 
     window.deleteCurrentTask = async function(id) {
-      if (!confirm("Voulez-vous vraiment supprimer cette note ?")) return;
+      if (!confirm("Voulez-vous vraiment supprimer définitivement cette note de l'historique ?")) return;
       const docRef = doc(db, 'tasks', id);
       await deleteDoc(docRef);
     };
