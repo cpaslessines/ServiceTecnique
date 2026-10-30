@@ -126,10 +126,9 @@
         <p class="text-xs sm:text-sm text-slate-300">Veuillez sélectionner le mode de travail souhaité</p>
       </div>
 
-      <!-- BOTÕES COM NOMES E OBJETIVOS TROCADOS -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
         
-        <!-- BOTÃO 1: GUIDE DU MÉTIER (Abre a vista completa com pannes, categorias e procedimentos) -->
+        <!-- BOTÃO 1: GUIDE DU MÉTIER (Vista completa) -->
         <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-orange-500/40 hover:border-orange-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
           <div class="flex items-center justify-between">
             <div class="w-12 h-12 rounded-2xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
@@ -143,7 +142,7 @@
           </div>
         </button>
 
-        <!-- BOTÃO 2: TÂCHES À ACCOMPLIR (Abre apenas as Demandes Rapides / notas À Faire) -->
+        <!-- BOTÃO 2: TÂCHES À ACCOMPLIR (Demandes Rapides / notas À Faire) -->
         <button onclick="navigateToView('demandes_rapides')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-amber-500/40 hover:border-amber-500 p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-48 sm:h-56">
           <div class="flex items-center justify-between">
             <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
@@ -192,11 +191,13 @@
           <span class="hidden md:inline">Menu</span>
         </button>
 
-        <button onclick="openAFaireModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
+        <!-- BOTÃO À FAIRE (Disponível apenas em Tâches à Accomplir) -->
+        <button id="btn-afaire-header" onclick="openAFaireModal()" class="flex items-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
           <i data-lucide="check-square" class="w-4 h-4"></i>
           <span>À faire</span>
         </button>
 
+        <!-- BOTÃO NOUVELLE TÂCHE (Disponível em Guide du métier) -->
         <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1.5 bg-orange-600 hover:bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
           <i data-lucide="plus" class="w-4 h-4"></i>
           <span class="hidden sm:inline">Nouvelle Tâche</span>
@@ -574,15 +575,18 @@
       const labelEl = document.getElementById('current-view-label');
       const catWrapper = document.getElementById('categories-bar-wrapper');
       const btnNouvelleTache = document.getElementById('btn-nouvelle-tache');
+      const btnAFaireHeader = document.getElementById('btn-afaire-header');
 
       if (mode === 'demandes_rapides') {
         labelEl.textContent = "Technicien ST • Tâches à Accomplir";
         catWrapper.classList.add('hidden');
         btnNouvelleTache.classList.add('hidden');
+        btnAFaireHeader.classList.remove('hidden'); // VISÍVEL EM TÂCHES À ACCOMPLIR
       } else {
         labelEl.textContent = "Technicien ST • Guide du métier";
         catWrapper.classList.remove('hidden');
         btnNouvelleTache.classList.remove('hidden');
+        btnAFaireHeader.classList.add('hidden'); // OCULTO EM GUIDE DU MÉTIER
       }
 
       loadSavedCategories();
