@@ -222,11 +222,11 @@
         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
           <i data-lucide="search" class="w-4 h-4"></i>
         </div>
-        <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, une chambre..." 
+        <input type="text" id="search-input" placeholder="Rechercher une panne, un outil, une chambre, un technicien..." 
           class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
       </div>
 
-      <!-- STATUS FILTER BAR (APENAS EM TÂCHES À ACCOMPLIR) -->
+      <!-- STATUS FILTER BAR -->
       <div id="status-filter-wrapper" class="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none hidden">
         <span class="text-xs font-bold text-slate-400 uppercase mr-1">Statut:</span>
         <button onclick="filterStatus('all')" id="status-btn-all" class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition-all">Tous</button>
@@ -248,6 +248,49 @@
       <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
 
     </main>
+  </div>
+
+  <!-- MODAL SÉLECTION TECHNICIEN (ATRIBUIÇÃO DE TÉCNICO) -->
+  <div id="technician-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
+        <h3 class="font-bold text-xs sm:text-sm text-amber-400 flex items-center">
+          <i data-lucide="user-check" class="w-4 h-4 mr-2 text-amber-400"></i> Technicien en Charge
+        </h3>
+        <button onclick="closeTechnicianModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="technician-form" onsubmit="handleTechnicianSubmit(event)" class="p-4 space-y-4">
+        <input type="hidden" id="tech-task-id" value="">
+        <input type="hidden" id="tech-target-status" value="">
+
+        <div>
+          <label class="block text-[11px] text-slate-400 uppercase font-bold mb-1.5">Nom du Technicien</label>
+          <input type="text" id="tech-name-input" required placeholder="Ex: Marc, Thomas, Jean..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Choix rapide :</label>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="selectQuickTech('Marc')" class="text-xs bg-slate-950 hover:bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-800">Marc</button>
+            <button type="button" onclick="selectQuickTech('Thomas')" class="text-xs bg-slate-950 hover:bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-800">Thomas</button>
+            <button type="button" onclick="selectQuickTech('Luc')" class="text-xs bg-slate-950 hover:bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-800">Luc</button>
+            <button type="button" onclick="selectQuickTech('Équipe ST')" class="text-xs bg-slate-950 hover:bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-800">Équipe ST</button>
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeTechnicianModal()" class="px-3.5 py-2 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-md shadow-amber-500/20 active:scale-95 flex items-center space-x-1">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Valider</span>
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- MODAL À FAIRE -->
@@ -486,7 +529,7 @@
     let unsubscribeSync = null;
     let allIssues = [];
     let currentCategory = 'todos';
-    let currentStatusFilter = 'all'; // 'all', 'À faire', 'En cours', 'Terminé'
+    let currentStatusFilter = 'all';
     let currentIssueId = null;
     let activeMode = 'all';
 
@@ -513,6 +556,7 @@
         title: 'Note: Fuite d\'eau sous le lavabo',
         category: 'plomberie',
         status: 'À faire',
+        technician: '',
         completedAt: null,
         materials: ['Chiffon', 'Clé à molette'],
         steps: ['Inspecter la tuyauterie', 'Changer le joint']
@@ -800,6 +844,7 @@
           (issue.title && issue.title.toLowerCase().includes(filterText)) ||
           (issue.room && issue.room.toLowerCase().includes(filterText)) ||
           (issue.wing && issue.wing.toLowerCase().includes(filterText)) ||
+          (issue.technician && issue.technician.toLowerCase().includes(filterText)) ||
           activeMat.some(m => m.toLowerCase().includes(filterText));
         return matchCategory && matchText;
       });
@@ -824,7 +869,7 @@
           const currentStatus = issue.status || 'À faire';
 
           card.className = currentStatus === 'Terminé' 
-            ? "bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between space-y-3 opacity-75 hover:opacity-100 transition-opacity"
+            ? "bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between space-y-3 opacity-80 hover:opacity-100 transition-opacity"
             : "bg-amber-950/20 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 relative";
 
           card.innerHTML = `
@@ -844,13 +889,21 @@
                 <span class="text-white font-bold bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">${issue.room || ''}</span>
               </div>
 
-              <p class="text-xs text-slate-200 leading-relaxed font-medium mb-1 ${currentStatus === 'Terminé' ? 'line-through text-slate-400' : ''}">${issue.title || ''}</p>
+              <p class="text-xs text-slate-200 leading-relaxed font-medium mb-2 ${currentStatus === 'Terminé' ? 'line-through text-slate-400' : ''}">${issue.title || ''}</p>
               
-              ${issue.completedAt ? `<p class="text-[10px] text-emerald-400 italic">Terminé le : ${new Date(issue.completedAt).toLocaleDateString('fr-FR')}</p>` : ''}
+              <!-- TÉCNICO RESPONSÁVEL -->
+              ${issue.technician ? `
+                <div class="inline-flex items-center space-x-1 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg text-xs font-medium text-amber-300 mb-1">
+                  <i data-lucide="user" class="w-3.5 h-3.5 text-amber-400"></i>
+                  <span>Technicien: <strong class="text-white">${issue.technician}</strong></span>
+                </div>
+              ` : ''}
+
+              ${issue.completedAt ? `<p class="text-[10px] text-emerald-400 italic mt-1">Terminé le : ${new Date(issue.completedAt).toLocaleDateString('fr-FR')}</p>` : ''}
             </div>
 
             <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
-              <select onchange="updateAFaireStatus('${issue.id}', this.value)" class="bg-slate-950 border border-slate-800 rounded-lg text-[11px] p-1.5 text-slate-300 focus:outline-none focus:border-amber-500 flex-1">
+              <select onchange="handleAFaireStatusChange('${issue.id}', this.value)" class="bg-slate-950 border border-slate-800 rounded-lg text-[11px] p-1.5 text-slate-300 focus:outline-none focus:border-amber-500 flex-1">
                 <option value="À faire" ${currentStatus === 'À faire' ? 'selected' : ''}>🔴 À faire</option>
                 <option value="En cours" ${currentStatus === 'En cours' ? 'selected' : ''}>🟠 En cours</option>
                 <option value="Terminé" ${currentStatus === 'Terminé' ? 'selected' : ''}>🟢 Terminé (Archiver)</option>
@@ -916,6 +969,7 @@
         room: document.getElementById('afaire-room').value,
         title: document.getElementById('afaire-desc').value,
         status: 'À faire',
+        technician: '',
         completedAt: null,
         updatedAt: Date.now(),
         updatedBy: 'st'
@@ -927,10 +981,48 @@
       window.closeAFaireModal();
     };
 
-    window.updateAFaireStatus = async function(id, newStatus) {
+    // ALTERAÇÃO DE ESTADO + PEDIDO DE NOME DO TÉCNICO
+    window.handleAFaireStatusChange = function(id, newStatus) {
+      const issue = allIssues.find(i => i.id === id);
+      if (!issue) return;
+
+      if (newStatus === 'En cours' || newStatus === 'Terminé') {
+        document.getElementById('tech-task-id').value = id;
+        document.getElementById('tech-target-status').value = newStatus;
+        document.getElementById('tech-name-input').value = issue.technician || '';
+        document.getElementById('technician-modal').classList.remove('hidden');
+      } else {
+        window.updateAFaireStatus(id, newStatus, '');
+      }
+    };
+
+    window.selectQuickTech = function(name) {
+      document.getElementById('tech-name-input').value = name;
+    };
+
+    window.closeTechnicianModal = function() {
+      document.getElementById('technician-modal').classList.add('hidden');
+      window.renderIssues();
+    };
+
+    window.handleTechnicianSubmit = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('tech-task-id').value;
+      const status = document.getElementById('tech-target-status').value;
+      const techName = document.getElementById('tech-name-input').value.trim();
+
+      await window.updateAFaireStatus(id, status, techName);
+      document.getElementById('technician-modal').classList.add('hidden');
+    };
+
+    window.updateAFaireStatus = async function(id, newStatus, technicianName) {
       const docRef = doc(db, 'tasks', id);
       const updateData = { status: newStatus, updatedAt: Date.now() };
-      
+
+      if (technicianName !== undefined) {
+        updateData.technician = technicianName;
+      }
+
       if (newStatus === 'Terminé') {
         updateData.completedAt = Date.now();
       } else {
