@@ -109,6 +109,20 @@
           'Démontez le mousseur/brise-jet pour vérifier s\'il est entartré.',
           'Remplacez le joint défectueux ou appliquez du ruban Téflon sur le filetage.'
         ]
+      },
+      {
+        id: 'tv-1',
+        category: 'tv',
+        title: 'Problème de Signal TV',
+        time: '15-20 min',
+        difficulty: 'Facile',
+        safety: 'Débranchez les équipements électriques avant toute manipulation de câbles.',
+        materials: ['Câble HDMI / Coaxial', 'Télécommande de rechange'],
+        steps: [
+          'Vérifier les branchements derrière la télévision et le décodeur.',
+          'Fixer le bras de TV au mur.',
+          'Redémarrer le décodeur ou la télévision.'
+        ]
       }
     ];
 
@@ -342,7 +356,15 @@
         
         const cloudIssues = [];
         snapshot.forEach((docSnap) => {
-          cloudIssues.push(docSnap.data());
+          let itemData = docSnap.data();
+          // Atualização automática de textos antigos se existirem no Firestore
+          if (itemData.id === 'tv-1' || itemData.title === 'Problème de Signal TV / Décodeur Coincé') {
+            itemData.title = 'Problème de Signal TV';
+            if (itemData.steps) {
+              itemData.steps = itemData.steps.map(s => s === 'Fixer le bras du téléviseur au mur.' ? 'Fixer le bras de TV au mur.' : s);
+            }
+          }
+          cloudIssues.push(itemData);
         });
 
         if (cloudIssues.length === 0 && !snapshot.metadata.fromCache) {
