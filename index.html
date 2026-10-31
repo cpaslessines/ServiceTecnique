@@ -315,13 +315,17 @@
       <form id="afaire-form" onsubmit="handleAFaireSubmit(event)" class="p-4 sm:p-6 space-y-4 overflow-y-auto">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étage (Piso)</label>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étage / Lieu</label>
             <select id="afaire-floor" onchange="handleFloorChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
-              <option value="Sous-sol">Sous-sol</option>
               <option value="Rez-de-chaussée" selected>RDC (Rés-do-chão)</option>
               <option value="1er étage">1er Étage</option>
               <option value="2ème étage">2ème Étage</option>
               <option value="3ème étage">3ème Étage</option>
+              <option value="CPAS">CPAS</option>
+              <option value="Log.Urgence">Log.Urgence</option>
+              <option value="ILLA">ILLA</option>
+              <option value="Relais">Relais</option>
+              <option value="M. Cimetière">M. Cimetière</option>
             </select>
           </div>
           <div>
