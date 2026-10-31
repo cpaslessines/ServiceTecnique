@@ -1,697 +1,1155 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr" class="h-full">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CPAS Lessines - Service Technique</title>
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CPAS LESSINES - Service Technique</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            halloween: {
-              orange: '#f97316',
-              purple: '#a855f7',
-              dark: '#0f172a',
-              accent: '#eab308'
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #0b0f19;
+      background-color: #020617;
       color: #f8fafc;
       -webkit-tap-highlight-color: transparent;
     }
-    /* Custom Scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+    #auth-overlay, #hub-navigation-screen {
+      background-image: linear-gradient(rgba(2, 6, 23, 0.85), rgba(2, 6, 23, 0.95)), url('https://github.com/cpaslessines/ServiceTecnique/raw/8b6706cc9f7ee3cbd0e7fda68b2b30940b5ab4d8/Paisagem%20Art%C3%ADstica%20de%20Lessines.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
     }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
     }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 9999px;
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #f97316;
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(5deg); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { text-shadow: 0 0 10px rgba(249, 115, 22, 0.6), 0 0 20px rgba(249, 115, 22, 0.4); }
+      50% { text-shadow: 0 0 20px rgba(249, 115, 22, 0.9), 0 0 30px rgba(239, 68, 68, 0.8); }
+    }
+    .halloween-float { animation: float 3s ease-in-out infinite; }
+    .halloween-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+    /* Touch Friendly Enhancements */
+    input, select, textarea {
+      font-size: 16px !important; /* Prevents auto-zoom on iOS safari */
+    }
+    @media (min-width: 640px) {
+      input, select, textarea {
+        font-size: 0.875rem !important; /* 14px on desktop */
+      }
     }
   </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  <!-- Firebase App & Firestore via CDN (Compat Version) -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-</head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-orange-500 selection:text-white">
+    const firebaseConfig = {
+      apiKey: "AIzaSyACXjspbF8vSSFY4mIqhKy0LdaCRNSjsq4",
+      authDomain: "cpas-lessines-st.firebaseapp.com",
+      projectId: "cpas-lessines-st",
+      storageBucket: "cpas-lessines-st.firebasestorage.app",
+      messagingSenderId: "57517677345",
+      appId: "1:57517677345:web:5dc915d7390bd7d5dabc60",
+      measurementId: "G-C4V40YYT8J"
+    };
 
-  <!-- Header Header -->
-  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-3 sm:px-6 py-3 transition-all">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
-      <!-- Logo & Title -->
-      <div class="flex items-center space-x-3 cursor-pointer" onclick="window.showScreen('screen-hub')">
-        <div class="w-10 h-10 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center shadow-lg shadow-orange-500/20 overflow-hidden shrink-0">
-          <img 
-            src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/335560955021822a6e6b26bb86583b49917f7f93/cpas.png" 
-            alt="CPAS Lessines Logo" 
-            class="w-full h-full object-contain p-1" 
-            onerror="this.onerror=null; this.src='https://github.com/cpaslessines/ServiceTecnique/raw/335560955021822a6e6b26bb86583b49917f7f93/cpas.png';" 
-          />
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const tasksCollection = collection(db, 'tasks');
+
+    let unsubscribeSync = null;
+    let allIssues = [];
+    let currentCategory = 'todos';
+    let currentStatusFilter = 'all';
+    let currentIssueId = null;
+    let activeMode = 'all';
+
+    let categories = [
+      { id: 'plomberie', label: 'Plomberie' },
+      { id: 'electrique', label: 'Électrique' },
+      { id: 'mobilier', label: 'Mobilier' },
+      { id: 'peinture', label: 'Peinture & Murs' },
+      { id: 'tv', label: 'TV & Multimédia' },
+      { id: 'serrurerie', label: 'Serrurerie' },
+      { id: 'autres', label: 'Autres' }
+    ];
+
+    const HARDCODED_USER = "st";
+    const HARDCODED_PASS = "Lessines2026!";
+
+    const defaultIssues = [
+      {
+        id: 'afaire-sample-1',
+        isNote: true,
+        floor: '1er étage',
+        wing: 'AILE B',
+        room: '104',
+        title: 'Note: Fuite d\'eau sous le lavabo',
+        category: 'plomberie',
+        status: 'À faire',
+        technician: '',
+        completedAt: null,
+        materials: ['Chiffon', 'Clé à molette'],
+        steps: ['Inspecter la tuyauterie', 'Changer le joint']
+      },
+      {
+        id: 'plomb-1',
+        category: 'plomberie',
+        title: 'Fuite de Robinet / Lave-mains',
+        time: '15-30 min',
+        difficulty: 'Facile',
+        safety: 'Coupez l\'eau au robinet d\'arrêt sous le lavabo avant d\'intervenir.',
+        materials: ['Chiffon microfibre', 'Clé anglaise / Clé à molette', 'Joints toriques de rechange', 'Ruban Téflon'],
+        steps: [
+          'Fermez les robinets d\'arrivée d\'eau chaude et froide.',
+          'Démontez le mousseur/brise-jet pour vérifier s\'il est entartré.',
+          'Remplacez le joint défectueux ou appliquez du ruban Téflon sur le filetage.'
+        ]
+      }
+    ];
+
+    function playHalloweenIntro(callback) {
+      const introOverlay = document.getElementById('halloween-intro-overlay');
+      introOverlay.classList.remove('hidden');
+      introOverlay.style.opacity = '1';
+
+      setTimeout(() => {
+        introOverlay.style.opacity = '0';
+        setTimeout(() => {
+          introOverlay.classList.add('hidden');
+          if (callback) callback();
+        }, 700);
+      }, 2500);
+    }
+
+    window.handleSharedLoginSubmit = function(e) {
+      e.preventDefault();
+      const userVal = document.getElementById('auth-username').value.trim();
+      const passVal = document.getElementById('auth-password').value.trim();
+      const alertBox = document.getElementById('auth-error-alert');
+
+      alertBox.classList.add('hidden');
+      if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
+        localStorage.setItem('cpas_st_auth', 'true');
+        document.getElementById('auth-overlay').classList.add('hidden');
+        playHalloweenIntro(() => {
+          showHubNavigation();
+          startFirestoreSync();
+        });
+      } else {
+        alertBox.classList.remove('hidden');
+      }
+    };
+
+    window.showHubNavigation = function() {
+      document.getElementById('app-main-interface').classList.add('hidden');
+      document.getElementById('hub-navigation-screen').classList.remove('hidden');
+      setDailyQuote();
+    };
+
+    function setDailyQuote() {
+      const quotes = [
+        "« Un bon ouvrier a toujours l'outil bien affûté et l'esprit clair. »",
+        "« La maintenance d'aujourd'hui garantit la sécurité de demain. »",
+        "« Service Technique : Discrets, efficaces et toujours prêts ! »",
+        "« Mieux vaut prévenir une panne que la réparer en urgence. »"
+      ];
+      const qEl = document.getElementById('daily-quote');
+      if (qEl) {
+        const rand = quotes[Math.floor(Math.random() * quotes.length)];
+        qEl.textContent = rand;
+      }
+    }
+
+    window.navigateToView = function(mode) {
+      activeMode = mode;
+      document.getElementById('hub-navigation-screen').classList.add('hidden');
+      document.getElementById('app-main-interface').classList.remove('hidden');
+
+      const labelEl = document.getElementById('current-view-label');
+      const catWrapper = document.getElementById('categories-bar-wrapper');
+      const statusWrapper = document.getElementById('status-filter-wrapper');
+      const btnNouvelleTache = document.getElementById('btn-nouvelle-tache');
+      const btnAFaireHeader = document.getElementById('btn-afaire-header');
+
+      if (labelEl) {
+        if (mode === 'demandes_rapides') {
+          labelEl.textContent = "Technicien ST • Tâches à Accomplir";
+        } else {
+          labelEl.textContent = "Technicien ST • Guide du métier";
+        }
+      }
+
+      if (catWrapper && statusWrapper && btnNouvelleTache && btnAFaireHeader) {
+        if (mode === 'demandes_rapides') {
+          catWrapper.classList.add('hidden');
+          statusWrapper.classList.remove('hidden');
+          btnNouvelleTache.classList.add('hidden');
+          btnAFaireHeader.classList.remove('hidden');
+        } else {
+          catWrapper.classList.remove('hidden');
+          statusWrapper.classList.add('hidden');
+          btnNouvelleTache.classList.remove('hidden');
+          btnAFaireHeader.classList.add('hidden');
+        }
+      }
+
+      window.loadSavedCategories();
+      window.renderCategoriesFilter();
+      window.renderCategorySelect();
+      window.renderIssues();
+    };
+
+    window.handleSharedLogout = function() {
+      if (confirm("Voulez-vous vraiment vous déconnecter ?")) {
+        localStorage.removeItem('cpas_st_auth');
+        if (unsubscribeSync) {
+          unsubscribeSync();
+          unsubscribeSync = null;
+        }
+        document.getElementById('auth-form').reset();
+        document.getElementById('app-main-interface').classList.add('hidden');
+        document.getElementById('hub-navigation-screen').classList.add('hidden');
+        document.getElementById('auth-overlay').classList.remove('hidden');
+      }
+    };
+
+    window.loadSavedCategories = function() {
+      const saved = localStorage.getItem('cpas_custom_categories');
+      if (saved) {
+        try { categories = JSON.parse(saved); } catch(e) {}
+      }
+    };
+
+    window.saveCategoriesToStorage = function() {
+      localStorage.setItem('cpas_custom_categories', JSON.stringify(categories));
+    };
+
+    window.filterCategory = function(catId) {
+      currentCategory = catId;
+      window.renderCategoriesFilter();
+      window.renderIssues();
+    };
+
+    window.filterStatus = function(status) {
+      currentStatusFilter = status;
+      const btns = ['all', 'afaire', 'encours', 'termine'];
+      btns.forEach(b => {
+        const el = document.getElementById(`status-btn-${b}`);
+        if (el) {
+          el.className = "bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0";
+        }
+      });
+      const activeMap = { 'all': 'all', 'À faire': 'afaire', 'En cours': 'encours', 'Terminé': 'termine' };
+      const activeEl = document.getElementById(`status-btn-${activeMap[status]}`);
+      if (activeEl) {
+        activeEl.className = "bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition-all shadow-md shrink-0";
+      }
+      window.renderIssues();
+    };
+
+    window.renderCategoriesFilter = function() {
+      const container = document.getElementById('categories-filter-container');
+      if (!container) return;
+
+      let html = `<button onclick="filterCategory('todos')" class="cat-btn ${currentCategory === 'todos' ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0">Tous</button>`;
+
+      categories.forEach(cat => {
+        const isActive = currentCategory === cat.id;
+        html += `<button onclick="filterCategory('${cat.id}')" class="cat-btn ${isActive ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0">${cat.label}</button>`;
+      });
+
+      container.innerHTML = html;
+      if (window.lucide) lucide.createIcons();
+    };
+
+    window.renderCategorySelect = function() {
+      const select = document.getElementById('custom-category');
+      if (!select) return;
+      select.innerHTML = categories.map(cat => `<option value="${cat.id}">${cat.label}</option>`).join('');
+    };
+
+    window.openCategoryManager = function() {
+      renderCategoryManagerList();
+      document.getElementById('category-manager-modal').classList.remove('hidden');
+    };
+
+    window.closeCategoryManager = function() {
+      document.getElementById('category-manager-modal').classList.add('hidden');
+      renderCategoriesFilter();
+      renderCategorySelect();
+    };
+
+    function renderCategoryManagerList() {
+      const list = document.getElementById('categories-management-list');
+      if (!list) return;
+      list.innerHTML = categories.map(cat => `
+        <div class="flex items-center justify-between p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs">
+          <span class="text-slate-200 font-medium">${cat.label}</span>
+          <button onclick="removeCategory('${cat.id}')" class="text-red-400 hover:text-red-300 p-1">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
         </div>
+      `).join('');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    window.addNewCategory = function() {
+      const input = document.getElementById('new-category-input');
+      const val = input.value.trim();
+      if (!val) return;
+      const id = val.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      if (categories.some(c => c.id === id)) {
+        alert("Cette catégorie existe déjà !");
+        return;
+      }
+      categories.push({ id, label: val });
+      saveCategoriesToStorage();
+      input.value = '';
+      renderCategoryManagerList();
+      renderCategoriesFilter();
+      renderCategorySelect();
+    };
+
+    window.removeCategory = function(id) {
+      if (categories.length <= 1) {
+        alert("Vous devez conserver au moins une catégorie.");
+        return;
+      }
+      categories = categories.filter(c => c.id !== id);
+      saveCategoriesToStorage();
+      renderCategoryManagerList();
+      renderCategoriesFilter();
+      renderCategorySelect();
+    };
+
+    window.updateSyncBadge = function(status, text) {
+      const badge = document.getElementById('sync-badge');
+      const diagBanner = document.getElementById('diagnostic-banner');
+      const diagText = document.getElementById('diagnostic-text');
+
+      if (!badge) return;
+
+      if (status === 'online') {
+        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20 shrink-0";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>${text}`;
+        if (diagText) diagText.textContent = "🎃 Session 'st' active & Base de données en direct !";
+        if (diagBanner) diagBanner.className = "bg-orange-500/10 border-b border-orange-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-orange-300";
+      } else if (status === 'error') {
+        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 shrink-0";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1"></span>${text}`;
+        if (diagText) diagText.textContent = `🔒 ${text}`;
+        if (diagBanner) diagBanner.className = "bg-red-500/10 border-b border-red-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-red-300";
+      }
+    };
+
+    window.handleFloorChange = function(floorValue) {
+      const wingSelect = document.getElementById('afaire-wing');
+      const roomContainer = document.getElementById('afaire-room-container');
+      if (!wingSelect || !roomContainer) return;
+
+      const noWingLocations = ['CPAS', 'Log.Urgence', 'ILLA', 'Relais', 'M. Cimetière', 'Rez-de-chaussée'];
+      if (noWingLocations.includes(floorValue)) {
+        wingSelect.value = 'AILE A';
+        wingSelect.disabled = true;
+        wingSelect.classList.add('opacity-50');
+      } else {
+        wingSelect.disabled = false;
+        wingSelect.classList.remove('opacity-50');
+      }
+
+      if (floorValue === 'Log.Urgence') {
+        roomContainer.innerHTML = `
+          <select id="afaire-room" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
+            <option value="1">1</option>
+            <option value="2">2</option>
+          </select>`;
+      } else if (floorValue === 'ILLA') {
+        roomContainer.innerHTML = `
+          <input type="text" id="afaire-room" required placeholder="Nº chambre" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">`;
+      } else if (['CPAS', 'Relais', 'M. Cimetière', 'Rez-de-chaussée'].includes(floorValue)) {
+        roomContainer.innerHTML = `
+          <input type="text" id="afaire-room" value="N/A" disabled class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-500 opacity-50">`;
+      } else {
+        roomContainer.innerHTML = `
+          <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">`;
+      }
+    };
+
+    function startFirestoreSync() {
+      window.updateSyncBadge('pending', 'Synchronisation...');
+
+      unsubscribeSync = onSnapshot(tasksCollection, (snapshot) => {
+        window.updateSyncBadge('online', 'En Direct');
+
+        const cloudIssues = [];
+        snapshot.forEach((docSnap) => {
+          cloudIssues.push(docSnap.data());
+        });
+
+        if (cloudIssues.length === 0 && !snapshot.metadata.fromCache) {
+          defaultIssues.forEach(async (issue) => {
+            const docRef = doc(db, 'tasks', issue.id);
+            await setDoc(docRef, { ...issue, updatedAt: Date.now(), updatedBy: 'st' });
+          });
+          allIssues = [...defaultIssues];
+        } else if (cloudIssues.length > 0) {
+          allIssues = cloudIssues;
+        }
+
+        window.renderIssues();
+      }, (error) => {
+        console.error("Firestore error:", error);
+        window.updateSyncBadge('error', 'Erreur d\'accès');
+      });
+    }
+
+    window.renderIssues = function(filterText = '') {
+      const container = document.getElementById('issues-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const filtered = allIssues.filter(issue => {
+        if (activeMode === 'demandes_rapides') {
+          if (!issue.isNote) return false;
+          if (currentStatusFilter !== 'all' && issue.status !== currentStatusFilter) return false;
+        } else {
+          // Guide du métier: never show quick user requests/notes
+          if (issue.isNote) return false;
+        }
+        const matchCategory = currentCategory === 'todos' || issue.category === currentCategory;
+        const activeMat = issue.materials || [];
+        const matchText = !filterText || 
+          (issue.title && issue.title.toLowerCase().includes(filterText)) ||
+          (issue.room && issue.room.toLowerCase().includes(filterText)) ||
+          (issue.wing && issue.wing.toLowerCase().includes(filterText)) ||
+          (issue.technician && issue.technician.toLowerCase().includes(filterText)) ||
+          activeMat.some(m => m.toLowerCase().includes(filterText));
+        return matchCategory && matchText;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs sm:text-sm col-span-full">Aucun élément trouvé.</div>`;
+        return;
+      }
+
+      filtered.forEach(issue => {
+        const card = document.createElement('div');
+        if (issue.isNote) {
+          const statusColors = {
+            'À faire': 'bg-red-500/20 text-red-400 border-red-500/30',
+            'En cours': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+            'Terminé': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+          };
+          const currentStatus = issue.status || 'À faire';
+
+          card.className = currentStatus === 'Terminé' 
+            ? "bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between space-y-3 opacity-80 hover:opacity-100 transition-opacity"
+            : "bg-amber-950/20 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 relative";
+
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full ${currentStatus === 'Terminé' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'} flex items-center">
+                  <i data-lucide="${currentStatus === 'Terminé' ? 'check-circle-2' : 'pin'}" class="w-3 h-3 mr-1"></i> 
+                  ${currentStatus === 'Terminé' ? 'Terminé (Historique)' : 'Demande Rapide'}
+                </span>
+                <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${statusColors[currentStatus]}">
+                  ${currentStatus}
+                </span>
+              </div>
+              <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-xs font-semibold text-amber-300 mb-2 flex items-center justify-between">
+                <span>📍 ${issue.floor || 'RDC'}${issue.wing ? ' • ' + issue.wing : ''}</span>
+                ${issue.room && issue.room !== 'N/A' ? `<span class="text-white font-bold bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">Ch. ${issue.room}</span>` : ''}
+              </div>
+              <p class="text-xs text-slate-200 leading-relaxed font-medium mb-2 ${currentStatus === 'Terminé' ? 'line-through text-slate-400' : ''}">${issue.title || ''}</p>
+            </div>
+            <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+              <span class="text-slate-400">Technicien: <strong class="text-slate-200">${issue.technician || 'Non assigné'}</strong></span>
+              <div class="flex items-center space-x-1">
+                <button onclick="openTechnicianModal('${issue.id}', 'En cours')" class="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg font-medium">Prendre</button>
+                <button onclick="openTechnicianModal('${issue.id}', 'Terminé')" class="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg font-medium">Clôturer</button>
+              </div>
+            </div>`;
+        } else {
+          card.className = "bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-orange-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 cursor-pointer transition-all group";
+          card.innerHTML = `
+            <div onclick="openDetailModal('${issue.id}')">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">${issue.category}</span>
+                <span class="text-xs text-slate-400 flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1 text-orange-400"></i>${issue.time}</span>
+              </div>
+              <h3 class="font-bold text-sm sm:text-base text-slate-100 group-hover:text-orange-400 transition-colors mb-1">${issue.title}</h3>
+              <p class="text-xs text-slate-400 font-medium">${issue.difficulty}</p>
+            </div>`;
+        }
+        container.appendChild(card);
+      });
+      if (window.lucide) lucide.createIcons();
+    };
+
+    window.openAFaireModal = function() {
+      document.getElementById('afaire-form').reset();
+      window.handleFloorChange('Rez-de-chaussée');
+      document.getElementById('afaire-modal').classList.remove('hidden');
+    };
+
+    window.closeAFaireModal = function() {
+      document.getElementById('afaire-modal').classList.add('hidden');
+    };
+
+    window.handleAFaireSubmit = async function(e) {
+      e.preventDefault();
+      const floor = document.getElementById('afaire-floor').value;
+      const wing = document.getElementById('afaire-wing').value;
+      const roomInput = document.getElementById('afaire-room');
+      const room = roomInput ? roomInput.value.trim() : '';
+      const desc = document.getElementById('afaire-desc').value.trim();
+
+      const issueId = 'task-' + Date.now();
+      const payload = {
+        id: issueId,
+        isNote: true,
+        category: 'autres',
+        title: desc,
+        floor,
+        wing,
+        room,
+        status: 'À faire',
+        technician: '',
+        updatedAt: Date.now()
+      };
+
+      await setDoc(doc(db, 'tasks', issueId), payload);
+      closeAFaireModal();
+    };
+
+    window.openTechnicianModal = function(taskId, targetStatus) {
+      document.getElementById('tech-task-id').value = taskId;
+      document.getElementById('tech-target-status').value = targetStatus;
+      document.getElementById('tech-name-input').value = '';
+      document.getElementById('technician-modal').classList.remove('hidden');
+    };
+
+    window.closeTechnicianModal = function() {
+      document.getElementById('technician-modal').classList.add('hidden');
+    };
+
+    window.handleTechnicianSubmit = async function(e) {
+      e.preventDefault();
+      const taskId = document.getElementById('tech-task-id').value;
+      const targetStatus = document.getElementById('tech-target-status').value;
+      const technicianName = document.getElementById('tech-name-input').value.trim();
+
+      const taskRef = doc(db, 'tasks', taskId);
+      await updateDoc(taskRef, {
+        status: targetStatus,
+        technician: technicianName,
+        updatedAt: Date.now()
+      });
+
+      closeTechnicianModal();
+    };
+
+    window.openDetailModal = function(id) {
+      const issue = allIssues.find(i => i.id === id);
+      if (!issue) return;
+      currentIssueId = id;
+
+      document.getElementById('modal-category').textContent = issue.category;
+      document.getElementById('modal-time').innerHTML = `<i data-lucide="clock" class="w-3 h-3 mr-1 text-orange-400"></i>${issue.time} • ${issue.difficulty}`;
+      document.getElementById('modal-title').textContent = issue.title;
+      document.getElementById('modal-safety').textContent = issue.safety;
+      
+      const unqAlert = document.getElementById('modal-unqualified-alert');
+      if (issue.category === 'electrique') {
+        unqAlert.classList.remove('hidden');
+      } else {
+        unqAlert.classList.add('hidden');
+      }
+
+      const matContainer = document.getElementById('materials-display-container');
+      matContainer.innerHTML = (issue.materials || []).map(m => `
+        <div class="flex items-center space-x-2 p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300">
+          <i data-lucide="check" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+          <span>${m}</span>
+        </div>
+      `).join('');
+
+      const stepsList = document.getElementById('instructions-steps-list');
+      stepsList.innerHTML = (issue.steps || []).map(s => `<li class="leading-relaxed">${s}</li>`).join('');
+
+      document.getElementById('detail-drawer').classList.remove('hidden');
+      setTimeout(() => {
+        document.getElementById('drawer-content').classList.remove('translate-y-full', 'sm:translate-y-0', 'sm:translate-x-full');
+      }, 10);
+      if (window.lucide) lucide.createIcons();
+    };
+
+    window.closeDetailModal = function() {
+      const drawerContent = document.getElementById('drawer-content');
+      drawerContent.classList.add('translate-y-full', 'sm:translate-y-0', 'sm:translate-x-full');
+      setTimeout(() => {
+        document.getElementById('detail-drawer').classList.add('hidden');
+      }, 300);
+    };
+
+    window.openInstructionsModal = function() {
+      document.getElementById('instructions-modal').classList.remove('hidden');
+    };
+
+    window.closeInstructionsModal = function() {
+      document.getElementById('instructions-modal').classList.add('hidden');
+    };
+
+    window.openAddIssueModal = function() {
+      document.getElementById('add-issue-form').reset();
+      document.getElementById('editing-issue-id').value = '';
+      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-orange-400"></i> Ajouter une Nouvelle Astuce`;
+      document.getElementById('form-submit-btn').textContent = "Créer l'Astuce";
+      window.renderCategorySelect();
+      document.getElementById('add-issue-modal').classList.remove('hidden');
+    };
+
+    window.closeAddIssueModal = function() {
+      document.getElementById('add-issue-modal').classList.add('hidden');
+    };
+
+    window.openEditCurrentIssue = function() {
+      const issue = allIssues.find(i => i.id === currentIssueId);
+      if (!issue || issue.isNote) return;
+
+      closeDetailModal();
+      document.getElementById('editing-issue-id').value = issue.id;
+      document.getElementById('custom-title').value = issue.title || '';
+      document.getElementById('custom-category').value = issue.category || categories[0].id;
+      document.getElementById('custom-difficulty').value = issue.difficulty || 'Facile';
+      document.getElementById('custom-materials').value = (issue.materials || []).join(', ');
+      document.getElementById('custom-steps').value = (issue.steps || []).join('\n');
+
+      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 mr-2 text-orange-400"></i> Modifier l'Astuce`;
+      document.getElementById('form-submit-btn').textContent = "Enregistrer les Modifications";
+      document.getElementById('add-issue-modal').classList.remove('hidden');
+    };
+
+    window.handleNewIssueSubmit = async function(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editing-issue-id').value;
+      const title = document.getElementById('custom-title').value.trim();
+      const category = document.getElementById('custom-category').value;
+      const difficulty = document.getElementById('custom-difficulty').value;
+      const materialsStr = document.getElementById('custom-materials').value;
+      const stepsStr = document.getElementById('custom-steps').value;
+
+      const materials = materialsStr.split(',').map(m => m.trim()).filter(Boolean);
+      const steps = stepsStr.split('\n').map(s => s.trim()).filter(Boolean);
+
+      const issueId = editId || ('issue-' + Date.now());
+      const payload = {
+        id: issueId,
+        category,
+        title,
+        time: '15-30 min',
+        difficulty,
+        safety: 'Respectez les consignes de sécurité en vigueur au sein du CPAS Lessines.',
+        materials,
+        steps,
+        updatedAt: Date.now()
+      };
+
+      await setDoc(doc(db, 'tasks', issueId), payload);
+      closeAddIssueModal();
+    };
+
+    window.deleteCurrentIssue = async function() {
+      if (confirm("Voulez-vous vraiment supprimer cet élément ?")) {
+        await deleteDoc(doc(db, 'tasks', currentIssueId));
+        closeDetailModal();
+      }
+    };
+
+    window.onload = function() {
+      if (window.lucide) lucide.createIcons();
+      if (localStorage.getItem('cpas_st_auth') === 'true') {
+        document.getElementById('auth-overlay').classList.add('hidden');
+        showHubNavigation();
+        startFirestoreSync();
+      }
+    };
+  </script>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden antialiased selection:bg-orange-500 selection:text-white">
+
+  <!-- HALLOWEEN TRANSITION OVERLAY -->
+  <div id="halloween-intro-overlay" class="fixed inset-0 z-[60] bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center hidden transition-opacity duration-700">
+    <div class="space-y-6 max-w-md w-full">
+      <div class="halloween-float text-6xl sm:text-7xl select-none">🎃👻🦇</div>
+      <div class="space-y-2">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-orange-500 halloween-glow tracking-wide">Joyeux Halloween !</h2>
+        <p class="text-xs sm:text-sm text-slate-300 font-medium">Service Technique - CPAS Lessines</p>
+        <p class="text-[11px] text-slate-400 italic">"Attention aux courts-circuits... et aux esprits farceurs dans les couloirs !"</p>
+      </div>
+      <div class="w-48 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
+        <div class="h-full bg-orange-500 rounded-full animate-[pulse_1s_infinite] w-full"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARED USER LOGIN OVERLAY -->
+  <div id="auth-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div class="max-w-md w-full bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-5 sm:p-8 shadow-2xl space-y-5 my-auto">
+      <div class="text-center space-y-3">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-lg p-2">
+          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS Lessines" class="w-full h-full object-contain">
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">CPAS LESSINES</h1>
+        <p class="text-xs sm:text-sm text-slate-300 font-medium">Connexion Unique - Service Technique 🎃</p>
+      </div>
+
+      <div id="auth-error-alert" class="hidden p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center space-x-2">
+        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+        <span id="auth-error-text">Nom d'utilisateur ou mot de passe incorrect.</span>
+      </div>
+
+      <form id="auth-form" onsubmit="handleSharedLoginSubmit(event)" class="space-y-4">
         <div>
-          <h1 class="text-sm sm:text-base font-bold text-white tracking-tight leading-none flex items-center gap-1.5">
-            CPAS Lessines 
-            <span class="text-[10px] bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">ST</span>
-          </h1>
-          <p class="text-[11px] text-slate-400 font-medium">Service Technique</p>
+          <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1.5">Nom d'Utilisateur</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
+            <input type="text" id="auth-username" required placeholder="st" autocomplete="username"
+              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] uppercase font-bold text-slate-300 mb-1.5">Mot de Passe</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
+            <input type="password" id="auth-password" required placeholder="••••••••" autocomplete="current-password"
+              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
+          </div>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>Se Connecter</span>
+        </button>
+      </form>
+
+      <p class="text-[11px] text-center text-slate-400">Accès restreint au personnel autorisé (ST).</p>
+    </div>
+  </div>
+
+  <!-- HUB NAVIGATION SCREEN -->
+  <div id="hub-navigation-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto hidden">
+    <div class="max-w-2xl w-full my-auto space-y-5 sm:space-y-6 text-center">
+      <div class="space-y-2">
+        <div class="w-14 h-14 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-xl p-2 mb-2">
+          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS" class="w-full h-full object-contain">
+        </div>
+        <h2 class="text-xl sm:text-3xl font-extrabold text-white tracking-tight">Espace Service Technique</h2>
+        <p class="text-xs sm:text-sm text-slate-300">Veuillez sélectionner le mode de travail souhaité</p>
+
+        <!-- FRASE MOTIVACIONAL DIÁRIA -->
+        <div class="pt-2 px-2 sm:px-4 max-w-lg mx-auto">
+          <p id="daily-quote" class="text-xs sm:text-sm text-orange-400 italic font-medium bg-slate-900/80 border border-orange-500/30 py-2.5 px-3.5 rounded-2xl shadow-inner backdrop-blur-md">
+            ✨ Chargement de la pensée du jour...
+          </p>
         </div>
       </div>
 
-      <!-- Navigation & Action Buttons -->
-      <div class="flex items-center space-x-2">
-        <!-- New Task Button (Visible only on Issues / Tâches screen) -->
-        <button id="btn-header-new-task" onclick="window.openNewIssueModal()" class="hidden text-xs font-semibold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-3.5 py-2 rounded-xl shadow-md transition flex items-center gap-1.5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 text-left">
+        <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-orange-500/40 hover:border-orange-500 p-5 sm:p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-40 sm:h-56">
+          <div class="flex items-center justify-between">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
+              <i data-lucide="book-open" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+            </div>
+            <span class="text-[10px] sm:text-xs text-orange-400 font-bold bg-orange-500/10 px-2.5 py-1 rounded-full border border-orange-500/20">Vue Complète</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-base sm:text-lg text-white mb-0.5 sm:mb-1 group-hover:text-orange-400 transition-colors">Guide du métier</h3>
+            <p class="text-[11px] sm:text-xs text-slate-400 leading-relaxed">Accéder à toutes les pannes, fiches pas-à-pas et matériel.</p>
+          </div>
+        </button>
+
+        <button onclick="navigateToView('demandes_rapides')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-amber-500/40 hover:border-amber-500 p-5 sm:p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-40 sm:h-56">
+          <div class="flex items-center justify-between">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+              <i data-lucide="check-square" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+            </div>
+            <span class="text-[10px] sm:text-xs text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">Terrain & Historique</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-base sm:text-lg text-white mb-0.5 sm:mb-1 group-hover:text-amber-400 transition-colors">Tâches à Accomplir</h3>
+            <p class="text-[11px] sm:text-xs text-slate-400 leading-relaxed">Consulter les demandes rapides du terrain et l'historique complet.</p>
+          </div>
+        </button>
+      </div>
+
+      <button onclick="handleSharedLogout()" class="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-red-400 transition-colors pt-2 sm:pt-4">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span>Se déconnecter</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- INTERFACE PRINCIPAL -->
+  <div id="app-main-interface" class="flex-1 flex flex-col hidden">
+    <!-- HEADER -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm p-1 shrink-0">
+          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS" class="w-full h-full object-contain">
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center space-x-1.5 sm:space-x-2">
+            <h1 id="app-company-name" class="font-bold text-xs sm:text-base tracking-tight text-slate-100 truncate">CPAS LESSINES 🎃</h1>
+            <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20 shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>En Direct
+            </span>
+          </div>
+          <p id="current-view-label" class="text-[10px] sm:text-xs text-slate-400 font-medium truncate">Technicien ST</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+        <button onclick="showHubNavigation()" class="p-2 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1" title="Retour au menu principal">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Menu</span>
+        </button>
+
+        <button id="btn-afaire-header" onclick="openAFaireModal()" class="flex items-center space-x-1 bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
           <i data-lucide="plus-circle" class="w-4 h-4"></i>
-          <span>Nouvelle Tâche</span>
+          <span class="inline">Tâche</span>
         </button>
 
-        <!-- New Guide/Astuce Button (Visible only on Guide screen) -->
-        <button id="btn-header-new-guide" onclick="window.openNewGuideModal()" class="hidden text-xs font-semibold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-3.5 py-2 rounded-xl shadow-md transition flex items-center gap-1.5">
+        <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1 bg-orange-600 hover:bg-orange-500 text-white px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
           <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>Nouvelle Astuce</span>
+          <span class="hidden sm:inline">Nouvelle Astuce</span>
         </button>
 
-        <button id="btn-back-hub" onclick="window.showScreen('screen-hub')" class="hidden text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2 rounded-xl transition flex items-center gap-1.5">
-          <i data-lucide="arrow-left" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">Menu Hub</span>
+        <button onclick="handleSharedLogout()" title="Déconnexion" class="p-2 sm:p-2.5 bg-slate-900 border border-slate-800 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 text-slate-400 rounded-xl text-xs transition-all active:scale-95">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
         </button>
+      </div>
+    </header>
 
-        <button id="btn-login" onclick="window.openLoginModal()" class="text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
-          <i data-lucide="lock" class="w-4 h-4"></i>
-          <span>Connexion</span>
+    <!-- DIAGNOSTIC BANNER -->
+    <div id="diagnostic-banner" class="bg-orange-500/10 border-b border-orange-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-orange-300">
+      <div class="flex items-center space-x-2 overflow-hidden">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400 shrink-0"></i>
+        <span id="diagnostic-text" class="font-medium truncate">Mode Halloween actif - Session synchronisée !</span>
+      </div>
+      <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-orange-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 md:p-8 space-y-4 sm:space-y-6 pb-24">
+
+      <!-- SEARCH BAR -->
+      <div class="relative max-w-2xl mx-auto md:mx-0">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <i data-lucide="search" class="w-4 h-4"></i>
+        </div>
+        <input type="text" id="search-input" placeholder="Rechercher une panne, chambre, technicien..." 
+          class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
+      </div>
+
+      <!-- STATUS FILTER BAR -->
+      <div id="status-filter-wrapper" class="flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto pb-1 scrollbar-none hidden">
+        <span class="text-[11px] sm:text-xs font-bold text-slate-400 uppercase mr-1 shrink-0">Statut:</span>
+        <button onclick="filterStatus('all')" id="status-btn-all" class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition-all shrink-0">Tous</button>
+        <button onclick="filterStatus('À faire')" id="status-btn-afaire" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0">🔴 À faire</button>
+        <button onclick="filterStatus('En cours')" id="status-btn-encours" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0">🟠 En cours</button>
+        <button onclick="filterStatus('Terminé')" id="status-btn-termine" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0">🟢 Historique</button>
+      </div>
+
+      <!-- CATEGORIES FILTER -->
+      <div id="categories-bar-wrapper" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto"></div>
+        <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-orange-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
+          <i data-lucide="settings-2" class="w-4 h-4"></i>
+          <span>Gérer Catégories</span>
         </button>
+      </div>
 
-        <div id="user-badge" class="hidden flex items-center gap-2 bg-slate-800/80 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-xs font-bold text-emerald-300 hidden sm:inline">Technicien</span>
-          <button onclick="window.logout()" class="text-slate-400 hover:text-red-400 ml-1 transition" title="Déconnexion">
-            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+      <!-- ISSUES GRID -->
+      <div id="issues-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"></div>
+
+    </main>
+  </div>
+
+  <!-- MODAL SÉLECTION TECHNICIEN -->
+  <div id="technician-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col my-auto">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
+        <h3 class="font-bold text-xs sm:text-sm text-amber-400 flex items-center">
+          <i data-lucide="user-check" class="w-4 h-4 mr-2 text-amber-400"></i> Technicien en Charge
+        </h3>
+        <button onclick="closeTechnicianModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="technician-form" onsubmit="handleTechnicianSubmit(event)" class="p-4 space-y-4">
+        <input type="hidden" id="tech-task-id" value="">
+        <input type="hidden" id="tech-target-status" value="">
+
+        <div>
+          <label class="block text-[11px] text-slate-400 uppercase font-bold mb-1.5">Nom du Technicien</label>
+          <input type="text" id="tech-name-input" required placeholder="Entrez le nom du technicien..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeTechnicianModal()" class="px-3.5 py-2 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-md shadow-amber-500/20 active:scale-95 flex items-center space-x-1">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Valider</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL À FAIRE -->
+  <div id="afaire-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-amber-500/30 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col my-auto max-h-[90vh]">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-amber-500/10">
+        <h3 class="font-bold text-xs sm:text-sm text-amber-400 flex items-center">
+          <i data-lucide="pin" class="w-4 h-4 mr-2 text-amber-400"></i> Nouvelle Tâche "À Faire"
+        </h3>
+        <button onclick="closeAFaireModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="afaire-form" onsubmit="handleAFaireSubmit(event)" class="p-4 sm:p-6 space-y-4 overflow-y-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étage / Lieu</label>
+            <select id="afaire-floor" onchange="handleFloorChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="Rez-de-chaussée" selected>RDC (Rés-do-chão)</option>
+              <option value="1er étage">1er Étage</option>
+              <option value="2ème étage">2ème Étage</option>
+              <option value="3ème étage">3ème Étage</option>
+              <option value="CPAS">CPAS</option>
+              <option value="Log.Urgence">Log.Urgence</option>
+              <option value="ILLA">ILLA</option>
+              <option value="Relais">Relais</option>
+              <option value="M. Cimetière">M. Cimetière</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Aile (Ala)</label>
+            <select id="afaire-wing" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500 transition-all">
+              <option value="AILE A" selected>AILE A</option>
+              <option value="AILE B">AILE B</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">N° Chambre</label>
+            <div id="afaire-room-container">
+              <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Description du problème / Demande</label>
+          <textarea id="afaire-desc" rows="3" required placeholder="Ex: La poignée de la fenêtre est cassée, la résidente demande de repasser." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeAFaireModal()" class="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
+          <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20 active:scale-95 flex items-center space-x-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Enregistrer Note</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DETAIL DRAWER / MODAL -->
+  <div id="detail-drawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex justify-end">
+    <div id="drawer-content" class="bg-slate-900 border-t sm:border-t-0 sm:border-l border-slate-800 w-full sm:max-w-md md:max-w-lg h-[92vh] sm:h-full mt-auto sm:mt-0 rounded-t-3xl sm:rounded-none flex flex-col transform translate-y-full sm:translate-y-0 sm:translate-x-full transition-transform duration-300 shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-2">
+          <span id="modal-category" class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20"></span>
+          <span id="modal-time" class="text-xs text-slate-400 flex items-center"></span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="openEditCurrentIssue()" class="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500/20 transition-colors" title="Modifier cette astuce">
+            <i data-lucide="edit-3" class="w-4 h-4"></i>
+          </button>
+          <button onclick="closeDetailModal()" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5">
+        <div>
+          <h2 id="modal-title" class="font-bold text-base sm:text-lg text-slate-100 leading-snug"></h2>
+        </div>
+
+        <div id="modal-safety-container" class="p-3.5 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-start space-x-3 text-orange-400">
+          <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
+          <div class="text-xs leading-relaxed">
+            <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
+            <p id="modal-safety" class="text-slate-300"></p>
+          </div>
+        </div>
+
+        <div id="modal-unqualified-alert" class="hidden p-3.5 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start space-x-3 text-red-400">
+          <i data-lucide="shield-alert" class="w-4 h-4 mt-0.5 shrink-0"></i>
+          <div class="text-xs leading-relaxed font-semibold">
+            <span>Si vous n'êtes pas qualifié pour manipuler des systèmes électriques, vous devez en informer votre supérieur.</span>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider flex items-center">
+            <i data-lucide="briefcase" class="w-4 h-4 mr-2 text-orange-400"></i> Matériel Requis
+          </h3>
+          <div id="materials-display-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+        </div>
+
+        <div class="pt-2">
+          <button onclick="openInstructionsModal()" class="w-full py-3.5 px-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold text-xs sm:text-sm flex items-center justify-between transition-all active:scale-95">
+            <span class="flex items-center space-x-2">
+              <i data-lucide="list-checks" class="w-4 h-4"></i>
+              <span>Consulter la Procédure Pas-à-Pas</span>
+            </span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="pt-6 border-t border-slate-800/80">
+          <button onclick="deleteCurrentIssue()" class="w-full py-3 px-4 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-semibold text-xs flex items-center justify-center space-x-2 transition-all active:scale-95">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>Supprimer cette astuce</span>
           </button>
         </div>
       </div>
     </div>
-  </header>
+  </div>
 
-  <!-- Main Container -->
-  <main class="flex-grow max-w-7xl w-full mx-auto p-3 sm:p-6">
-
-    <!-- SCREEN 1: HUB PRINCIPAL -->
-    <section id="screen-hub" class="space-y-6">
-      <div class="text-center space-y-2 py-4">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-semibold mb-1">
-          <i data-lucide="ghost" class="w-3.5 h-3.5 text-orange-400"></i>
-          Espace Service Technique
-        </div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Veuillez vous connecter pour accéder aux outils</h2>
-        
-        <!-- Frase Motivacional Diária -->
-        <div class="max-w-xl mx-auto mt-3 p-3 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-inner">
-          <p id="daily-quote" class="text-xs sm:text-sm text-slate-300 italic font-medium leading-relaxed"></p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
-        <!-- Card 1: Guide du métier -->
-        <div onclick="window.checkAuthAndNavigate('screen-guide')" class="group relative bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-orange-500/50 p-6 sm:p-8 rounded-3xl transition-all duration-300 cursor-pointer shadow-xl hover:shadow-orange-500/10 flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <i data-lucide="book-open" class="w-7 h-7"></i>
-            </div>
-            <div>
-              <h3 class="text-xl font-bold text-white group-hover:text-orange-400 transition-colors">Guide du Métier</h3>
-              <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">Consultez les procédures standard, guides de dépannage et consignes techniques.</p>
-            </div>
-          </div>
-          <div class="mt-6 flex items-center text-xs font-bold text-orange-400 gap-2 group-hover:translate-x-1 transition-transform">
-            <span>Accéder au Guide</span>
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-          </div>
-        </div>
-
-        <!-- Card 2: Tâches à accomplir -->
-        <div onclick="window.checkAuthAndNavigate('screen-issues')" class="group relative bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/50 p-6 sm:p-8 rounded-3xl transition-all duration-300 cursor-pointer shadow-xl hover:shadow-purple-500/10 flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <i data-lucide="check-square" class="w-7 h-7"></i>
-            </div>
-            <div>
-              <h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">Tâches à Accomplir</h3>
-              <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">Gestion en temps réel des interventions, tickets de maintenance et demandes de travail.</p>
-            </div>
-          </div>
-          <div class="mt-6 flex items-center text-xs font-bold text-purple-400 gap-2 group-hover:translate-x-1 transition-transform">
-            <span>Consulter les Tâches</span>
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SCREEN 2: GUIDE DU MÉTIER -->
-    <section id="screen-guide" class="hidden space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div>
-          <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-            <i data-lucide="book-open" class="w-6 h-6 text-orange-400"></i>
-            Guide du Métier
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-400">Procédures standard et tutoriels de maintenance</p>
-        </div>
-      </div>
-
-      <!-- Content Categories -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Guide Item 1 -->
-        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              <i data-lucide="tv" class="w-5 h-5"></i>
-            </div>
-            <h4 class="font-bold text-white text-sm">Télévision & Signal</h4>
-          </div>
-          <p class="text-xs text-slate-400 leading-relaxed">Procédures pour résoudre le problème de signal TV ou réinitialiser un décodeur bloqué dans les chambres.</p>
-        </div>
-
-        <!-- Guide Item 2 -->
-        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="p-2 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              <i data-lucide="wrench" class="w-5 h-5"></i>
-            </div>
-            <h4 class="font-bold text-white text-sm">Montage Fixations</h4>
-          </div>
-          <p class="text-xs text-slate-400 leading-relaxed">Instructions étape par étape pour fixer le bras de TV au mur en toute sécurité selon la structure.</p>
-        </div>
-
-        <!-- Guide Item 3 -->
-        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <i data-lucide="zap" class="w-5 h-5"></i>
-            </div>
-            <h4 class="font-bold text-white text-sm">Électricité & Sécurité</h4>
-          </div>
-          <p class="text-xs text-slate-400 leading-relaxed">Vérification des disjoncteurs, éclairages d'urgence et remplacement des blocs de prises défectueux.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SCREEN 3: TÂCHES À ACCOMPLIR -->
-    <section id="screen-issues" class="hidden space-y-4 sm:space-y-6">
-      <!-- Action Bar -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-900/80 p-3 sm:p-4 rounded-2xl border border-slate-800">
-        <div>
-          <h2 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-            <i data-lucide="list-todo" class="w-5 h-5 text-purple-400"></i>
-            Liste des Tâches
-          </h2>
-          <p class="text-xs text-slate-400">Gestion active des interventions techniques</p>
-        </div>
-
-        <button onclick="window.openNewIssueModal()" class="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-orange-500/20 transition flex items-center justify-center gap-2">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i>
-          <span>Nouvelle Tâche</span>
+  <!-- INSTRUCTIONS MODAL -->
+  <div id="instructions-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] my-auto">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
+          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-orange-400"></i> Procédure d'Intervention
+        </h3>
+        <button onclick="closeInstructionsModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Filters & Tabs -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <button id="tab-all" onclick="window.setFilter('Tous')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition shrink-0 bg-orange-500/20 text-orange-400 border-orange-500/30">
-          Tous
-        </button>
-        <button id="tab-todo" onclick="window.setFilter('À faire')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition shrink-0 bg-slate-800 text-slate-400 border-slate-700 hover:text-white">
-          À faire
-        </button>
-        <button id="tab-progress" onclick="window.setFilter('En cours')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition shrink-0 bg-slate-800 text-slate-400 border-slate-700 hover:text-white">
-          En cours
-        </button>
-        <button id="tab-done" onclick="window.setFilter('Terminé')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition shrink-0 bg-slate-800 text-slate-400 border-slate-700 hover:text-white">
-          Terminé (Historique)
-        </button>
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <ol id="instructions-steps-list" class="space-y-3 text-xs sm:text-sm text-slate-300 list-decimal pl-4"></ol>
       </div>
-
-      <!-- Dynamic Cards Grid -->
-      <div id="issues-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <!-- JS render issues here -->
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="bg-slate-950 border-t border-slate-800/80 text-center py-4 px-4 text-xs text-slate-500">
-    <p>© 2026 CPAS Lessines - Service Technique. Tous droits réservés.</p>
-  </footer>
-
-  <!-- MODAL 1: LOGIN -->
-  <div id="modal-login" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl relative">
-      <button onclick="window.closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-
-      <div class="text-center space-y-2">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center mx-auto mb-2 shadow-lg shadow-orange-500/20">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-          </svg>
-        </div>
-        <h3 class="text-lg font-bold text-white">Accès Réservé ST</h3>
-        <p class="text-xs text-slate-400">Identifiez-vous pour valider les actions techniques</p>
-      </div>
-
-      <form onsubmit="window.handleLoginSubmit(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Nom d'utilisateur</label>
-          <input type="text" id="login-username" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="Utilisateur (ex: st)">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Mot de passe</label>
-          <input type="password" id="login-password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="••••••••">
-        </div>
-
-        <p id="login-error" class="text-xs text-red-400 hidden text-center font-medium">Identifiants incorrects (ex: st / Lessines2026!).</p>
-
-        <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-orange-500/20 transition mt-2">
-          Se Connecter
-        </button>
-      </form>
     </div>
   </div>
 
-  <!-- MODAL 2: NOUVELLE TÂCHE -->
-  <div id="modal-new-issue" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-      <button onclick="window.closeNewIssueModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-
-      <div class="space-y-1">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-          <i data-lucide="plus-circle" class="w-5 h-5 text-orange-400"></i>
-          Nouvelle Intervention
+  <!-- ADD / EDIT ASTUCE MODAL -->
+  <div id="add-issue-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-auto">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <h3 id="modal-form-title" class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
+          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-orange-400"></i> Ajouter une Nouvelle Astuce
         </h3>
-        <p class="text-xs text-slate-400">Complétez le formulaire ci-dessous</p>
+        <button onclick="closeAddIssueModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
       </div>
 
-      <form onsubmit="window.handleNewIssueSubmit(event)" class="space-y-4">
-        <!-- Étage / Lieu -->
+      <form id="add-issue-form" onsubmit="handleNewIssueSubmit(event)" class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <input type="hidden" id="editing-issue-id" value="">
+        
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Étage / Lieu *</label>
-          <select id="issue-floor" required onchange="window.handleFloorChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition">
-            <option value="Rez-de-chaussée (RDC)">Rez-de-chaussée (RDC)</option>
-            <option value="1er étage">1er étage</option>
-            <option value="2ème étage">2ème étage</option>
-            <option value="3ème étage">3ème étage</option>
-            <option value="CPAS">CPAS</option>
-            <option value="Log.Urgence">Log.Urgence</option>
-            <option value="ILLA">ILLA</option>
-            <option value="Relais">Relais</option>
-            <option value="M. Cimetière">M. Cimetière</option>
-          </select>
+          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Titre de l'Astuce / Intervention</label>
+          <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500">
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <!-- Aile (Selection) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Aile</label>
-            <select id="issue-wing" disabled class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50">
-              <option value="">Sélectionner</option>
-              <option value="AILE A">AILE A</option>
-              <option value="AILE B">AILE B</option>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold">Catégorie</label>
+              <button type="button" onclick="openCategoryManager()" class="text-[10px] text-orange-400 hover:underline flex items-center">
+                <i data-lucide="settings" class="w-3 h-3 mr-1"></i> Gérer
+              </button>
+            </div>
+            <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500"></select>
+          </div>
+          <div>
+            <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Difficulté</label>
+            <select id="custom-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500">
+              <option value="Facile">Facile</option>
+              <option value="Moyenne">Moyenne</option>
+              <option value="Difficile">Difficile</option>
             </select>
           </div>
-
-          <!-- Room / Chambre Container -->
-          <div id="room-container">
-            <label class="block text-xs font-semibold text-slate-300 mb-1">N° Chambre</label>
-            <input type="text" id="issue-room" disabled placeholder="N/A" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition disabled:opacity-50">
-          </div>
         </div>
 
-        <!-- Predefined Issue Templates -->
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Problème Fréquent</label>
-          <select onchange="if(this.value) document.getElementById('issue-title').value = this.value" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-orange-500 transition">
-            <option value="">-- Choisir un modèle rapide --</option>
-            <option value="Problème de Signal TV">Problème de Signal TV</option>
-            <option value="Fixer le bras de TV au mur">Fixer le bras de TV au mur</option>
-            <option value="Ampoule défectueuse / Éclairage">Ampoule défectueuse / Éclairage</option>
-            <option value="Fuite d'eau sanitaire / Robinet">Fuite d'eau sanitaire / Robinet</option>
-            <option value="Serrure ou poignée coincée">Serrure ou poignée coincée</option>
-          </select>
+          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Matériel Requis (séparé par des virgules)</label>
+          <input type="text" id="custom-materials" required placeholder="Ex: Tournevis, Ampoule LED E27, Escabeau" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500">
         </div>
 
-        <!-- Description -->
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Description *</label>
-          <textarea id="issue-title" required rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="Détails du problème..."></textarea>
+          <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étapes de l'Intervention (une par ligne)</label>
+          <textarea id="custom-steps" rows="3" required placeholder="Étape 1&#10;Étape 2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500"></textarea>
         </div>
 
-        <!-- Technicien (Input simple) -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Technicien Référent</label>
-          <input type="text" id="issue-tech" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="Nom du technicien...">
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeAddIssueModal()" class="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
+          <button type="submit" id="form-submit-btn" class="px-5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-600/20 active:scale-95">Créer l'Astuce</button>
         </div>
-
-        <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-3 rounded-xl shadow-lg shadow-orange-500/20 transition mt-2">
-          Enregistrer la Tâche
-        </button>
       </form>
     </div>
   </div>
 
-  <!-- Javascript App Logic -->
-  <script>
-    // Motivational Quotes List
-    const MOTIVATIONAL_QUOTES = [
-      "Chaque problème a sa solution technique. Passez une excellente journée !",
-      "L'union de l'équipe fait la force de notre service. Bon travail à tous !",
-      "Un petit dépannage aujourd'hui apporte un grand confort à nos résidents.",
-      "Votre professionnalisme et votre sourire font toute la différence.",
-      "Rien ne résiste à une équipe technique motivée et bien équipée !"
-    ];
+  <!-- CATEGORY MANAGER MODAL -->
+  <div id="category-manager-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
+          <i data-lucide="folder-cog" class="w-4 h-4 mr-2 text-orange-400"></i> Gérer les Catégories
+        </h3>
+        <button onclick="closeCategoryManager()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
 
-    // Local Initial Data
-    let issuesData = [
-      { id: '1', floor: '1er étage', wing: 'AILE A', room: '104', title: 'Problème de Signal TV', status: 'À faire', tech: 'Jean', createdAt: new Date().toISOString() },
-      { id: '2', floor: '2ème étage', wing: 'AILE B', room: '210', title: 'Fixer le bras de TV au mur', status: 'En cours', tech: 'Marc', createdAt: new Date().toISOString() },
-      { id: '3', floor: 'Log.Urgence', wing: '', room: '1', title: 'Remplacement ampoule cuisine', status: 'À faire', tech: 'Luc', createdAt: new Date().toISOString() },
-      { id: '4', floor: 'ILLA', wing: '', room: '12', title: 'Vérification radiateur', status: 'En cours', tech: 'Jean', createdAt: new Date().toISOString() }
-    ];
+      <div class="p-4 space-y-4">
+        <div class="flex space-x-2">
+          <input type="text" id="new-category-input" placeholder="Nouvelle catégorie..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
+          <button onclick="addNewCategory()" class="px-3.5 py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl text-xs sm:text-sm active:scale-95">Ajouter</button>
+        </div>
 
-    let currentFilter = 'Tous';
-    let isAuthenticated = false;
+        <div id="categories-management-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+  </div>
 
-    // Daily Quote Generator
-    window.setDailyQuote = function() {
-      const quoteElement = document.getElementById('daily-quote');
-      if (quoteElement) {
-        const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
-        quoteElement.textContent = `« ${MOTIVATIONAL_QUOTES[randomIndex]} »`;
-      }
-    };
-
-    // Navigation & Auth Screens
-    window.showScreen = function(screenId) {
-      document.getElementById('screen-hub').classList.add('hidden');
-      document.getElementById('screen-guide').classList.add('hidden');
-      document.getElementById('screen-issues').classList.add('hidden');
-      
-      const targetScreen = document.getElementById(screenId);
-      if (targetScreen) targetScreen.classList.remove('hidden');
-
-      const btnBackHub = document.getElementById('btn-back-hub');
-      const btnHeaderNewTask = document.getElementById('btn-header-new-task');
-      const btnHeaderNewGuide = document.getElementById('btn-header-new-guide');
-
-      if (screenId === 'screen-hub') {
-        if (btnBackHub) btnBackHub.classList.add('hidden');
-        if (btnHeaderNewTask) btnHeaderNewTask.classList.add('hidden');
-        if (btnHeaderNewGuide) btnHeaderNewGuide.classList.add('hidden');
-      } else {
-        if (btnBackHub) btnBackHub.classList.remove('hidden');
-        
-        // Dynamic Header Button Rules
-        if (screenId === 'screen-issues') {
-          if (btnHeaderNewTask) btnHeaderNewTask.classList.remove('hidden');
-          if (btnHeaderNewGuide) btnHeaderNewGuide.classList.add('hidden');
-        } else if (screenId === 'screen-guide') {
-          if (btnHeaderNewTask) btnHeaderNewTask.classList.add('hidden');
-          if (btnHeaderNewGuide) btnHeaderNewGuide.classList.remove('hidden');
-        }
-      }
-
-      if (window.lucide) lucide.createIcons();
-    };
-
-    window.checkAuthAndNavigate = function(screenId) {
-      if (!isAuthenticated) {
-        window.openLoginModal();
-      } else {
-        window.showScreen(screenId);
-      }
-    };
-
-    // Login Modals
-    window.openLoginModal = function() {
-      document.getElementById('modal-login').classList.remove('hidden');
-      document.getElementById('login-error').classList.add('hidden');
-      if (window.lucide) lucide.createIcons();
-    };
-
-    window.closeLoginModal = function() {
-      document.getElementById('modal-login').classList.add('hidden');
-    };
-
-    window.handleLoginSubmit = function(e) {
-      e.preventDefault();
-      const userVal = document.getElementById('login-username').value.trim();
-      const passVal = document.getElementById('login-password').value.trim();
-
-      if (userVal === 'st' && passVal === 'Lessines2026!') {
-        isAuthenticated = true;
-        document.getElementById('btn-login').classList.add('hidden');
-        document.getElementById('user-badge').classList.remove('hidden');
-        window.closeLoginModal();
-        if (window.lucide) lucide.createIcons();
-      } else {
-        document.getElementById('login-error').classList.remove('hidden');
-      }
-    };
-
-    window.logout = function() {
-      isAuthenticated = false;
-      document.getElementById('btn-login').classList.remove('hidden');
-      document.getElementById('user-badge').classList.add('hidden');
-      window.showScreen('screen-hub');
-    };
-
-    // Issue Modal Functions
-    window.openNewIssueModal = function() {
-      if (!isAuthenticated) {
-        window.openLoginModal();
-        return;
-      }
-      document.getElementById('modal-new-issue').classList.remove('hidden');
-      window.handleFloorChange(document.getElementById('issue-floor').value);
-      if (window.lucide) lucide.createIcons();
-    };
-
-    window.closeNewIssueModal = function() {
-      document.getElementById('modal-new-issue').classList.add('hidden');
-    };
-
-    // Floor & Location Rules Engine
-    window.handleFloorChange = function(floorValue) {
-      const wingSelect = document.getElementById('issue-wing');
-      const roomContainer = document.getElementById('room-container');
-
-      // Locations with NO WING (Aile)
-      const noWingLocations = ['Rez-de-chaussée (RDC)', '3ème étage', 'CPAS', 'Log.Urgence', 'ILLA', 'Relais', 'M. Cimetière'];
-
-      if (noWingLocations.includes(floorValue)) {
-        wingSelect.value = '';
-        wingSelect.disabled = true;
-        wingSelect.removeAttribute('required');
-      } else {
-        wingSelect.disabled = false;
-        wingSelect.setAttribute('required', 'true');
-      }
-
-      // Special Room Handling per Location
-      if (['Rez-de-chaussée (RDC)', 'CPAS', 'Relais', 'M. Cimetière'].includes(floorValue)) {
-        // Disabled room
-        roomContainer.innerHTML = `
-          <label class="block text-xs font-semibold text-slate-300 mb-1">N° Chambre</label>
-          <input type="text" id="issue-room" disabled placeholder="N/A" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition disabled:opacity-50">
-        `;
-      } else if (floorValue === 'Log.Urgence') {
-        // Room dropdown with options 1 or 2
-        roomContainer.innerHTML = `
-          <label class="block text-xs font-semibold text-slate-300 mb-1">N° Chambre *</label>
-          <select id="issue-room" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition">
-            <option value="">Sélectionner</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-          </select>
-        `;
-      } else {
-        // Standard text room input (1er, 2ème, 3ème étage, ILLA)
-        roomContainer.innerHTML = `
-          <label class="block text-xs font-semibold text-slate-300 mb-1">N° Chambre *</label>
-          <input type="text" id="issue-room" required placeholder="Ex: 101, 12..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition">
-        `;
-      }
-    };
-
-    window.handleNewIssueSubmit = function(e) {
-      e.preventDefault();
-      const floor = document.getElementById('issue-floor').value;
-      const wing = document.getElementById('issue-wing').value;
-      const roomInput = document.getElementById('issue-room');
-      const room = roomInput ? roomInput.value : '';
-      const title = document.getElementById('issue-title').value.trim();
-      const tech = document.getElementById('issue-tech').value.trim() || 'ST Team';
-
-      const newIssue = {
-        id: Date.now().toString(),
-        floor,
-        wing,
-        room,
-        title,
-        status: 'À faire',
-        tech,
-        createdAt: new Date().toISOString()
-      };
-
-      issuesData.unshift(newIssue);
-      window.closeNewIssueModal();
-      window.renderIssues();
-
-      // Reset Form
-      e.target.reset();
-    };
-
-    // Status & Filter Helpers
-    window.setFilter = function(filterName) {
-      currentFilter = filterName;
-      ['tab-all', 'tab-todo', 'tab-progress', 'tab-done'].forEach(tabId => {
-        const tabBtn = document.getElementById(tabId);
-        if (tabBtn) {
-          tabBtn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition shrink-0 bg-slate-800 text-slate-400 border-slate-700 hover:text-white';
-        }
-      });
-
-      let activeTabId = 'tab-all';
-      if (filterName === 'À faire') activeTabId = 'tab-todo';
-      if (filterName === 'En cours') activeTabId = 'tab-progress';
-      if (filterName === 'Terminé') activeTabId = 'tab-done';
-
-      const activeBtn = document.getElementById(activeTabId);
-      if (activeBtn) {
-        activeBtn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition shrink-0 bg-orange-500/20 text-orange-400 border-orange-500/30';
-      }
-
-      window.renderIssues();
-    };
-
-    window.updateStatus = function(issueId, newStatus) {
-      if (!isAuthenticated) {
-        window.openLoginModal();
-        return;
-      }
-      const issue = issuesData.find(item => item.id === issueId);
-      if (issue) {
-        issue.status = newStatus;
-        window.renderIssues();
-      }
-    };
-
-    // Main Issue Renderer
-    window.renderIssues = function() {
-      const grid = document.getElementById('issues-grid');
-      if (!grid) return;
-
-      const filtered = issuesData.filter(issue => {
-        if (currentFilter === 'Tous') return true;
-        return issue.status === currentFilter;
-      });
-
-      if (filtered.length === 0) {
-        grid.innerHTML = `
-          <div class="col-span-full text-center py-12 bg-slate-900/40 rounded-3xl border border-slate-800">
-            <i data-lucide="inbox" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
-            <p class="text-xs text-slate-400 font-medium">Aucune tâche trouvée pour ce filtre.</p>
-          </div>
-        `;
-        if (window.lucide) lucide.createIcons();
-        return;
-      }
-
-      grid.innerHTML = filtered.map(issue => {
-        let statusBadgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
-        if (issue.status === 'En cours') statusBadgeClass = 'bg-blue-500/10 text-blue-400 border-blue-500/30';
-        if (issue.status === 'Terminé') statusBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
-
-        // Room badge render tag
-        const roomBadge = issue.room ? `<span class="bg-slate-800 text-orange-300 font-bold px-2 py-0.5 rounded-md border border-slate-700">Ch. ${issue.room}</span>` : '';
-        const wingBadge = issue.wing ? `<span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700">${issue.wing}</span>` : '';
-
-        return `
-          <div class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 p-4 rounded-2xl space-y-3 flex flex-col justify-between transition shadow-lg">
-            <div class="space-y-2">
-              <div class="flex items-center justify-between gap-1 text-[11px] font-semibold text-slate-400">
-                <span class="text-orange-400 font-bold">${issue.floor}</span>
-                <div class="flex items-center gap-1">
-                  ${wingBadge}
-                  ${roomBadge}
-                </div>
-              </div>
-
-              <h4 class="text-sm font-bold text-white leading-snug">${issue.title}</h4>
-            </div>
-
-            <div class="pt-2 border-t border-slate-800/80 space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-slate-400 flex items-center gap-1">
-                  <i data-lucide="user" class="w-3 h-3 text-slate-500"></i> ${issue.tech}
-                </span>
-                <span class="text-[10px] px-2 py-0.5 rounded-full border ${statusBadgeClass} font-bold">
-                  ${issue.status}
-                </span>
-              </div>
-
-              <!-- Quick Action Dropdown / Select -->
-              <div class="flex items-center gap-1.5">
-                <select onchange="window.updateStatus('${issue.id}', this.value)" class="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-lg px-2 py-1 text-[11px] focus:outline-none focus:border-orange-500 transition">
-                  <option value="À faire" ${issue.status === 'À faire' ? 'selected' : ''}>À faire</option>
-                  <option value="En cours" ${issue.status === 'En cours' ? 'selected' : ''}>En cours</option>
-                  <option value="Terminé" ${issue.status === 'Terminé' ? 'selected' : ''}>Terminé (Historique)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      if (window.lucide) lucide.createIcons();
-    };
-
-    // Initialization
-    window.onload = function() {
-      if (window.lucide) lucide.createIcons();
-      window.setDailyQuote();
-      window.renderIssues();
-      // Open Login Modal by default
-      window.openLoginModal();
-    };
-  </script>
 </body>
+</html>
