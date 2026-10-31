@@ -144,7 +144,8 @@
 
       alertBox.classList.add('hidden');
       if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
-        localStorage.setItem('cpas_st_auth', 'true');
+        // Usa sessionStorage para o login expirar automaticamente ao fechar a janela
+        sessionStorage.setItem('cpas_st_auth', 'true');
         document.getElementById('auth-overlay').classList.add('hidden');
         playChristmasIntro(() => {
           showHubNavigation();
@@ -216,7 +217,8 @@
 
     window.handleSharedLogout = function() {
       if (confirm("Voulez-vous vraiment vous déconnecter ?")) {
-        localStorage.removeItem('cpas_st_auth');
+        sessionStorage.removeItem('cpas_st_auth');
+        localStorage.removeItem('cpas_st_auth'); // Por precaução para limpar dados antigos
         if (unsubscribeSync) {
           unsubscribeSync();
           unsubscribeSync = null;
@@ -681,12 +683,20 @@
       }
     };
 
+    // Garante a destruição da sessão ao fechar a janela ou separador
+    window.addEventListener('pagehide', function() {
+      sessionStorage.removeItem('cpas_st_auth');
+    });
+
     window.onload = function() {
       if (window.lucide) lucide.createIcons();
-      if (localStorage.getItem('cpas_st_auth') === 'true') {
+      // Verifica no sessionStorage (que expira automaticamente ao fechar o separador)
+      if (sessionStorage.getItem('cpas_st_auth') === 'true') {
         document.getElementById('auth-overlay').classList.add('hidden');
         showHubNavigation();
         startFirestoreSync();
+      } else {
+        document.getElementById('auth-overlay').classList.remove('hidden');
       }
     };
   </script>
