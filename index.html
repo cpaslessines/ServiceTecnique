@@ -946,7 +946,7 @@
               
               <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-xs font-semibold text-amber-300 mb-2 flex items-center justify-between gap-1">
                 <span class="truncate">📍 ${issue.floor || 'RDC'} ${issue.wing ? '• ' + issue.wing : ''}</span>
-                <span class="text-white font-bold bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30 shrink-0">${issue.room || ''}</span>
+                ${issue.room ? `<span class="text-white font-bold bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30 shrink-0">Ch. ${issue.room}</span>` : ''}
               </div>
 
               <p class="text-xs text-slate-200 leading-relaxed font-medium mb-2 ${currentStatus === 'Terminé' ? 'line-through text-slate-400' : ''}">${issue.title || ''}</p>
