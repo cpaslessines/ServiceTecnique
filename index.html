@@ -330,7 +330,10 @@
           </div>
           <div>
             <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Aile (Ala)</label>
-            <input type="text" id="afaire-wing" required placeholder="Ex: AILE A" oninput="this.value = this.value.toUpperCase();" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500 transition-all">
+            <select id="afaire-wing" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500 transition-all">
+              <option value="AILE A" selected>AILE A</option>
+              <option value="AILE B">AILE B</option>
+            </select>
           </div>
           <div>
             <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">N° Chambre</label>
@@ -1122,12 +1125,11 @@
         wingInput.value = '';
         wingInput.disabled = true;
         wingInput.required = false;
-        wingInput.placeholder = "Pas d'aile pour ce lieu";
         wingInput.classList.add('opacity-50', 'bg-slate-900');
       } else {
         wingInput.disabled = false;
         wingInput.required = true;
-        wingInput.placeholder = "Ex: AILE A";
+        if (!wingInput.value) wingInput.value = 'AILE A';
         wingInput.classList.remove('opacity-50', 'bg-slate-900');
       }
 
