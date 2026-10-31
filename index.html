@@ -337,7 +337,9 @@
           </div>
           <div>
             <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">N° Chambre</label>
-            <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
+            <div id="afaire-room-container">
+              <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
+            </div>
           </div>
         </div>
 
@@ -1096,8 +1098,8 @@
     // CONTROLO DO CAMPO AILE E CHAMBRE CONFORME O PISO OU LOCALIZAÇÃO
     window.handleFloorChange = function(floorValue) {
       const wingInput = document.getElementById('afaire-wing');
-      const roomInput = document.getElementById('afaire-room');
-      if (!wingInput || !roomInput) return;
+      const roomContainer = document.getElementById('afaire-room-container');
+      if (!wingInput || !roomContainer) return;
 
       // Locais/pisos onde NÃO existem alas
       const noWingLocations = [
@@ -1110,12 +1112,10 @@
         'M. Cimetière'
       ];
 
-      // Locais onde NÃO existem números de quarto
+      // Locais onde NÃO existem números de quarto (excluído Log.Urgence pois tem 1 e 2 e ILLA pois agora permite número)
       const noRoomLocations = [
         'Rez-de-chaussée',
         'CPAS',
-        'Log.Urgence',
-        'ILLA',
         'Relais',
         'M. Cimetière'
       ];
@@ -1134,17 +1134,23 @@
       }
 
       // Gestão do campo CHAMBRE
-      if (noRoomLocations.includes(floorValue)) {
-        roomInput.value = '';
-        roomInput.disabled = true;
-        roomInput.required = false;
-        roomInput.placeholder = "N/A";
-        roomInput.classList.add('opacity-50', 'bg-slate-900');
+      if (floorValue === 'Log.Urgence') {
+        // Para Log.Urgence ativa a seleção exclusiva de 1 ou 2
+        roomContainer.innerHTML = `
+          <select id="afaire-room" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+          </select>
+        `;
+      } else if (noRoomLocations.includes(floorValue)) {
+        roomContainer.innerHTML = `
+          <input type="text" id="afaire-room" disabled placeholder="N/A" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 opacity-50">
+        `;
       } else {
-        roomInput.disabled = false;
-        roomInput.required = true;
-        roomInput.placeholder = "Ex: 104";
-        roomInput.classList.remove('opacity-50', 'bg-slate-900');
+        // Para 1er, 2ème, 3ème étage e ILLA permite introduzir o número do quarto livremente
+        roomContainer.innerHTML = `
+          <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
+        `;
       }
     };
 
