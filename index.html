@@ -964,7 +964,7 @@
                 <option value="Terminé" ${currentStatus === 'Terminé' ? 'selected' : ''}>🟢 Terminé (Archiver)</option>
               </select>
 
-              <button onclick="deleteCurrentTask('${issue.id}')" class="p-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20 shrink-0 active:scale-95" title="Supprimer définitivement">
+              <button onclick="deleteCurrentTask('${issue.id}')" class="p-1.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20" title="Supprimer définitivement">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -974,7 +974,7 @@
           const catObj = categories.find(c => c.id === issue.category);
           const catLabel = catObj ? catObj.label : (issue.category || 'Général');
 
-          card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-5 hover:border-slate-700 transition-all cursor-pointer active:scale-[0.98] shadow-md flex flex-col justify-between space-y-3";
+          card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 hover:border-slate-700 transition-all cursor-pointer active:scale-[0.98] shadow-md flex flex-col justify-between space-y-3";
           card.onclick = () => window.openDetailModal(issue.id);
 
           card.innerHTML = `
@@ -990,7 +990,7 @@
               <h3 class="font-bold text-xs sm:text-sm text-slate-100 mb-2.5 leading-snug">${issue.title || 'Sans Titre'}</h3>
               <div class="flex flex-wrap gap-1 mb-1">
                 ${activeMat.slice(0, 3).map(m => `
-                  <span class="text-[10px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded-md border border-slate-800/80 truncate">
+                  <span class="text-[10px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded-md border border-slate-800/80">
                     ${m}
                   </span>
                 `).join('')}
@@ -1002,25 +1002,6 @@
       });
 
       if (typeof lucide !== 'undefined') lucide.createIcons();
-    };
-
-    // CONTROLO DO CAMPO AILE CONFORME O PISO
-    window.handleFloorChange = function(floorValue) {
-      const wingInput = document.getElementById('afaire-wing');
-      if (!wingInput) return;
-
-      if (floorValue === '3ème étage') {
-        wingInput.value = '';
-        wingInput.disabled = true;
-        wingInput.required = false;
-        wingInput.placeholder = "Pas d'aile au 3ème";
-        wingInput.classList.add('opacity-50', 'bg-slate-900');
-      } else {
-        wingInput.disabled = false;
-        wingInput.required = true;
-        wingInput.placeholder = "Ex: AILE A";
-        wingInput.classList.remove('opacity-50', 'bg-slate-900');
-      }
     };
 
     window.openAFaireModal = function() {
@@ -1036,7 +1017,11 @@
     window.handleAFaireSubmit = async function(e) {
       e.preventDefault();
       const floorVal = document.getElementById('afaire-floor').value;
-      const wingVal = floorVal === '3ème étage' ? '' : document.getElementById('afaire-wing').value.toUpperCase();
+      const noWingLocations = ['3ème étage', 'Rez-de-chaussée', 'CPAS', 'Log.Urgence', 'ILLA', 'Relais', 'M. Cimetière'];
+      const noRoomLocations = ['Rez-de-chaussée', 'CPAS', 'Log.Urgence', 'ILLA', 'Relais', 'M. Cimetière'];
+
+      const wingVal = noWingLocations.includes(floorVal) ? '' : document.getElementById('afaire-wing').value.toUpperCase();
+      const roomVal = noRoomLocations.includes(floorVal) ? '' : document.getElementById('afaire-room').value;
 
       const newId = 'note-' + Date.now();
       const noteData = {
@@ -1044,7 +1029,7 @@
         isNote: true,
         floor: floorVal,
         wing: wingVal,
-        room: document.getElementById('afaire-room').value,
+        room: roomVal,
         title: document.getElementById('afaire-desc').value,
         status: 'À faire',
         technician: '',
@@ -1103,6 +1088,62 @@
       }
 
       await updateDoc(docRef, updateData);
+    };
+
+    // CONTROLO DO CAMPO AILE E CHAMBRE CONFORME O PISO OU LOCALIZAÇÃO
+    window.handleFloorChange = function(floorValue) {
+      const wingInput = document.getElementById('afaire-wing');
+      const roomInput = document.getElementById('afaire-room');
+      if (!wingInput || !roomInput) return;
+
+      // Locais/pisos onde NÃO existem alas
+      const noWingLocations = [
+        '3ème étage',
+        'Rez-de-chaussée',
+        'CPAS',
+        'Log.Urgence',
+        'ILLA',
+        'Relais',
+        'M. Cimetière'
+      ];
+
+      // Locais onde NÃO existem números de quarto
+      const noRoomLocations = [
+        'Rez-de-chaussée',
+        'CPAS',
+        'Log.Urgence',
+        'ILLA',
+        'Relais',
+        'M. Cimetière'
+      ];
+
+      // Gestão do campo AILE
+      if (noWingLocations.includes(floorValue)) {
+        wingInput.value = '';
+        wingInput.disabled = true;
+        wingInput.required = false;
+        wingInput.placeholder = "Pas d'aile pour ce lieu";
+        wingInput.classList.add('opacity-50', 'bg-slate-900');
+      } else {
+        wingInput.disabled = false;
+        wingInput.required = true;
+        wingInput.placeholder = "Ex: AILE A";
+        wingInput.classList.remove('opacity-50', 'bg-slate-900');
+      }
+
+      // Gestão do campo CHAMBRE
+      if (noRoomLocations.includes(floorValue)) {
+        roomInput.value = '';
+        roomInput.disabled = true;
+        roomInput.required = false;
+        roomInput.placeholder = "N/A";
+        roomInput.classList.add('opacity-50', 'bg-slate-900');
+      } else {
+        roomInput.disabled = false;
+        roomInput.required = true;
+        roomInput.placeholder = "Ex: 104";
+        roomInput.classList.remove('opacity-50', 'bg-slate-900');
+      }
     };
 
     window.deleteCurrentTask = async function(id) {
