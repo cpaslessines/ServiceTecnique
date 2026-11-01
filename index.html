@@ -1,9 +1,8 @@
-<!DOCTYPE html>
 <html lang="fr" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CPAS LESSINES - Service Technique (Mode Noël)</title>
+  <title>CPAS LESSINES - Service Technique</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -15,12 +14,12 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #022c22;
+      background-color: #020617;
       color: #f8fafc;
       -webkit-tap-highlight-color: transparent;
     }
     #auth-overlay, #hub-navigation-screen {
-      background-image: linear-gradient(rgba(2, 44, 34, 0.85), rgba(2, 44, 34, 0.95)), url('https://github.com/cpaslessines/ServiceTecnique/raw/8b6706cc9f7ee3cbd0e7fda68b2b30940b5ab4d8/Paisagem%20Art%C3%ADstica%20de%20Lessines.png');
+      background-image: linear-gradient(rgba(2, 6, 23, 0.85), rgba(2, 6, 23, 0.95)), url('https://github.com/cpaslessines/ServiceTecnique/raw/8b6706cc9f7ee3cbd0e7fda68b2b30940b5ab4d8/Paisagem%20Art%C3%ADstica%20de%20Lessines.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -37,11 +36,11 @@
       50% { transform: translateY(-15px) rotate(5deg); }
     }
     @keyframes pulse-glow {
-      0%, 100% { text-shadow: 0 0 10px rgba(239, 68, 68, 0.6), 0 0 20px rgba(239, 68, 68, 0.4); }
-      50% { text-shadow: 0 0 20px rgba(34, 197, 94, 0.9), 0 0 30px rgba(234, 179, 8, 0.8); }
+      0%, 100% { text-shadow: 0 0 10px rgba(249, 115, 22, 0.6), 0 0 20px rgba(249, 115, 22, 0.4); }
+      50% { text-shadow: 0 0 20px rgba(249, 115, 22, 0.9), 0 0 30px rgba(239, 68, 68, 0.8); }
     }
-    .christmas-float { animation: float 3s ease-in-out infinite; }
-    .christmas-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .halloween-float { animation: float 3s ease-in-out infinite; }
+    .halloween-glow { animation: pulse-glow 2s ease-in-out infinite; }
 
     /* Touch Friendly Enhancements */
     input, select, textarea {
@@ -70,6 +69,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const tasksCollection = collection(db, 'tasks');
+    const agendaCollection = collection(db, 'agenda');
+    let unsubscribeAgenda = null;
+    let agendaEvents = [];
+    let agendaCursor = new Date();
+    let editingAgendaId = null;
 
     let unsubscribeSync = null;
     let allIssues = [];
@@ -98,13 +102,13 @@
         floor: '1er étage',
         wing: 'AILE B',
         room: '104',
-        title: 'Note: Vérification des radiateurs pour l\'hiver',
+        title: 'Note: Fuite d\'eau sous le lavabo',
         category: 'plomberie',
         status: 'À faire',
         technician: '',
         completedAt: null,
-        materials: ['Thermomètre', 'Clé de purge'],
-        steps: ['Purger les radiateurs', 'Vérifier la pression']
+        materials: ['Chiffon', 'Clé à molette'],
+        steps: ['Inspecter la tuyauterie', 'Changer le joint']
       },
       {
         id: 'plomb-1',
@@ -122,8 +126,8 @@
       }
     ];
 
-    function playChristmasIntro(callback) {
-      const introOverlay = document.getElementById('christmas-intro-overlay');
+    function playHalloweenIntro(callback) {
+      const introOverlay = document.getElementById('halloween-intro-overlay');
       introOverlay.classList.remove('hidden');
       introOverlay.style.opacity = '1';
 
@@ -144,10 +148,9 @@
 
       alertBox.classList.add('hidden');
       if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
-        // Usa sessionStorage para o login expirar automaticamente ao fechar a janela
-        sessionStorage.setItem('cpas_st_auth', 'true');
+        localStorage.setItem('cpas_st_auth', 'true');
         document.getElementById('auth-overlay').classList.add('hidden');
-        playChristmasIntro(() => {
+        playHalloweenIntro(() => {
           showHubNavigation();
           startFirestoreSync();
         });
@@ -164,10 +167,10 @@
 
     function setDailyQuote() {
       const quotes = [
-        "« Joyeuses Fêtes ! Un atelier bien rangé est un cadeau pour toute l'équipe. »",
-        "« La solidarité et l'entraide sont les plus beaux cadeaux de Noël. »",
-        "« Service Technique : Toujours à l'heure, même en traîneau ! »",
-        "« Préparons l'hiver au chaud pour tous les résidents de Lessines. »"
+        "« Un bon ouvrier a toujours l'outil bien affûté et l'esprit clair. »",
+        "« La maintenance d'aujourd'hui garantit la sécurité de demain. »",
+        "« Service Technique : Discrets, efficaces et toujours prêts ! »",
+        "« Mieux vaut prévenir une panne que la réparer en urgence. »"
       ];
       const qEl = document.getElementById('daily-quote');
       if (qEl) {
@@ -217,8 +220,7 @@
 
     window.handleSharedLogout = function() {
       if (confirm("Voulez-vous vraiment vous déconnecter ?")) {
-        sessionStorage.removeItem('cpas_st_auth');
-        localStorage.removeItem('cpas_st_auth'); // Por precaução para limpar dados antigos
+        localStorage.removeItem('cpas_st_auth');
         if (unsubscribeSync) {
           unsubscribeSync();
           unsubscribeSync = null;
@@ -259,7 +261,7 @@
       const activeMap = { 'all': 'all', 'À faire': 'afaire', 'En cours': 'encours', 'Terminé': 'termine' };
       const activeEl = document.getElementById(`status-btn-${activeMap[status]}`);
       if (activeEl) {
-        activeEl.className = "bg-red-600 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition-all shadow-md shrink-0";
+        activeEl.className = "bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition-all shadow-md shrink-0";
       }
       window.renderIssues();
     };
@@ -268,11 +270,11 @@
       const container = document.getElementById('categories-filter-container');
       if (!container) return;
 
-      let html = `<button onclick="filterCategory('todos')" class="cat-btn ${currentCategory === 'todos' ? 'bg-red-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0">Tous</button>`;
+      let html = `<button onclick="filterCategory('todos')" class="cat-btn ${currentCategory === 'todos' ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0">Tous</button>`;
 
       categories.forEach(cat => {
         const isActive = currentCategory === cat.id;
-        html += `<button onclick="filterCategory('${cat.id}')" class="cat-btn ${isActive ? 'bg-red-600 text-white shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0">${cat.label}</button>`;
+        html += `<button onclick="filterCategory('${cat.id}')" class="cat-btn ${isActive ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0">${cat.label}</button>`;
       });
 
       container.innerHTML = html;
@@ -347,10 +349,10 @@
       if (!badge) return;
 
       if (status === 'online') {
-        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 shrink-0";
-        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 animate-pulse"></span>${text}`;
-        if (diagText) diagText.textContent = "🎄 Mode Noël actif & Base de données en direct !";
-        if (diagBanner) diagBanner.className = "bg-red-500/10 border-b border-red-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-red-300";
+        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20 shrink-0";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>${text}`;
+        if (diagText) diagText.textContent = "🎃 Session 'st' active & Base de données en direct !";
+        if (diagBanner) diagBanner.className = "bg-orange-500/10 border-b border-orange-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-orange-300";
       } else if (status === 'error') {
         badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 shrink-0";
         badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1"></span>${text}`;
@@ -376,19 +378,19 @@
 
       if (floorValue === 'Log.Urgence') {
         roomContainer.innerHTML = `
-          <select id="afaire-room" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-red-500">
+          <select id="afaire-room" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">
             <option value="1">1</option>
             <option value="2">2</option>
           </select>`;
       } else if (floorValue === 'ILLA') {
         roomContainer.innerHTML = `
-          <input type="text" id="afaire-room" required placeholder="Nº chambre" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-red-500">`;
+          <input type="text" id="afaire-room" required placeholder="Nº chambre" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">`;
       } else if (['CPAS', 'Relais', 'M. Cimetière', 'Rez-de-chaussée'].includes(floorValue)) {
         roomContainer.innerHTML = `
           <input type="text" id="afaire-room" value="N/A" disabled class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-500 opacity-50">`;
       } else {
         roomContainer.innerHTML = `
-          <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-red-500">`;
+          <input type="text" id="afaire-room" required placeholder="Ex: 104" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500">`;
       }
     };
 
@@ -430,6 +432,7 @@
           if (!issue.isNote) return false;
           if (currentStatusFilter !== 'all' && issue.status !== currentStatusFilter) return false;
         } else {
+          // Guide du métier: never show quick user requests/notes
           if (issue.isNote) return false;
         }
         const matchCategory = currentCategory === 'todos' || issue.category === currentCategory;
@@ -460,12 +463,12 @@
 
           card.className = currentStatus === 'Terminé' 
             ? "bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between space-y-3 opacity-80 hover:opacity-100 transition-opacity"
-            : "bg-red-950/20 border-2 border-red-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 relative";
+            : "bg-amber-950/20 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 relative";
 
           card.innerHTML = `
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full ${currentStatus === 'Terminé' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/20 text-red-400 border border-red-500/30'} flex items-center">
+                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full ${currentStatus === 'Terminé' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'} flex items-center">
                   <i data-lucide="${currentStatus === 'Terminé' ? 'check-circle-2' : 'pin'}" class="w-3 h-3 mr-1"></i> 
                   ${currentStatus === 'Terminé' ? 'Terminé (Historique)' : 'Demande Rapide'}
                 </span>
@@ -473,28 +476,28 @@
                   ${currentStatus}
                 </span>
               </div>
-              <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-xs font-semibold text-red-300 mb-2 flex items-center justify-between">
+              <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-xs font-semibold text-amber-300 mb-2 flex items-center justify-between">
                 <span>📍 ${issue.floor || 'RDC'}${issue.wing ? ' • ' + issue.wing : ''}</span>
-                ${issue.room && issue.room !== 'N/A' ? `<span class="text-white font-bold bg-red-500/20 px-2 py-0.5 rounded-md border border-red-500/30">Ch. ${issue.room}</span>` : ''}
+                ${issue.room && issue.room !== 'N/A' ? `<span class="text-white font-bold bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">Ch. ${issue.room}</span>` : ''}
               </div>
               <p class="text-xs text-slate-200 leading-relaxed font-medium mb-2 ${currentStatus === 'Terminé' ? 'line-through text-slate-400' : ''}">${issue.title || ''}</p>
             </div>
             <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
               <span class="text-slate-400">Technicien: <strong class="text-slate-200">${issue.technician || 'Non assigné'}</strong></span>
               <div class="flex items-center space-x-1">
-                <button onclick="openTechnicianModal('${issue.id}', 'En cours')" class="px-2 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg font-medium">Prendre</button>
+                <button onclick="openTechnicianModal('${issue.id}', 'En cours')" class="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg font-medium">Prendre</button>
                 <button onclick="openTechnicianModal('${issue.id}', 'Terminé')" class="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg font-medium">Clôturer</button>
               </div>
             </div>`;
         } else {
-          card.className = "bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-red-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 cursor-pointer transition-all group";
+          card.className = "bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-orange-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 cursor-pointer transition-all group";
           card.innerHTML = `
             <div onclick="openDetailModal('${issue.id}')">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">${issue.category}</span>
-                <span class="text-xs text-slate-400 flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1 text-red-400"></i>${issue.time}</span>
+                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">${issue.category}</span>
+                <span class="text-xs text-slate-400 flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1 text-orange-400"></i>${issue.time}</span>
               </div>
-              <h3 class="font-bold text-sm sm:text-base text-slate-100 group-hover:text-red-400 transition-colors mb-1">${issue.title}</h3>
+              <h3 class="font-bold text-sm sm:text-base text-slate-100 group-hover:text-orange-400 transition-colors mb-1">${issue.title}</h3>
               <p class="text-xs text-slate-400 font-medium">${issue.difficulty}</p>
             </div>`;
         }
@@ -572,7 +575,7 @@
       currentIssueId = id;
 
       document.getElementById('modal-category').textContent = issue.category;
-      document.getElementById('modal-time').innerHTML = `<i data-lucide="clock" class="w-3 h-3 mr-1 text-red-400"></i>${issue.time} • ${issue.difficulty}`;
+      document.getElementById('modal-time').innerHTML = `<i data-lucide="clock" class="w-3 h-3 mr-1 text-orange-400"></i>${issue.time} • ${issue.difficulty}`;
       document.getElementById('modal-title').textContent = issue.title;
       document.getElementById('modal-safety').textContent = issue.safety;
       
@@ -586,7 +589,7 @@
       const matContainer = document.getElementById('materials-display-container');
       matContainer.innerHTML = (issue.materials || []).map(m => `
         <div class="flex items-center space-x-2 p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300">
-          <i data-lucide="check" class="w-3.5 h-3.5 text-red-400 shrink-0"></i>
+          <i data-lucide="check" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
           <span>${m}</span>
         </div>
       `).join('');
@@ -620,7 +623,7 @@
     window.openAddIssueModal = function() {
       document.getElementById('add-issue-form').reset();
       document.getElementById('editing-issue-id').value = '';
-      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-red-400"></i> Ajouter une Nouvelle Astuce`;
+      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-orange-400"></i> Ajouter une Nouvelle Astuce`;
       document.getElementById('form-submit-btn').textContent = "Créer l'Astuce";
       window.renderCategorySelect();
       document.getElementById('add-issue-modal').classList.remove('hidden');
@@ -642,7 +645,7 @@
       document.getElementById('custom-materials').value = (issue.materials || []).join(', ');
       document.getElementById('custom-steps').value = (issue.steps || []).join('\n');
 
-      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 mr-2 text-red-400"></i> Modifier l'Astuce`;
+      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 mr-2 text-orange-400"></i> Modifier l'Astuce`;
       document.getElementById('form-submit-btn').textContent = "Enregistrer les Modifications";
       document.getElementById('add-issue-modal').classList.remove('hidden');
     };
@@ -683,45 +686,190 @@
       }
     };
 
-    // Garante a destruição da sessão ao fechar a janela ou separador
-    window.addEventListener('pagehide', function() {
-      sessionStorage.removeItem('cpas_st_auth');
-    });
+
+    // AGENDA PARTAGÉE - Firestore
+    function escapeAgendaHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+
+    function localDateKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function startAgendaSync() {
+      if (unsubscribeAgenda) return;
+      unsubscribeAgenda = onSnapshot(agendaCollection, snapshot => {
+        agendaEvents = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        renderAgendaCalendar();
+      }, error => {
+        console.error('Agenda Firestore error:', error);
+        alert("Impossible de synchroniser l'agenda. Vérifiez les règles d'accès Firebase.");
+      });
+    }
+
+    window.openAgenda = function() {
+      document.getElementById('hub-navigation-screen').classList.add('hidden');
+      document.getElementById('agenda-screen').classList.remove('hidden');
+      document.getElementById('app-main-interface').classList.add('hidden');
+      startAgendaSync();
+      renderAgendaCalendar();
+    };
+
+    window.closeAgenda = function() {
+      document.getElementById('agenda-screen').classList.add('hidden');
+      document.getElementById('hub-navigation-screen').classList.remove('hidden');
+    };
+
+    window.changeAgendaMonth = function(delta) {
+      agendaCursor.setMonth(agendaCursor.getMonth() + delta, 1);
+      renderAgendaCalendar();
+    };
+
+    window.goAgendaToday = function() {
+      agendaCursor = new Date();
+      renderAgendaCalendar();
+    };
+
+    window.renderAgendaCalendar = function() {
+      const title = document.getElementById('agenda-month-title');
+      const grid = document.getElementById('agenda-calendar-grid');
+      if (!title || !grid) return;
+
+      title.textContent = new Intl.DateTimeFormat('fr-BE', { month: 'long', year: 'numeric' }).format(agendaCursor);
+      const year = agendaCursor.getFullYear();
+      const month = agendaCursor.getMonth();
+      const first = new Date(year, month, 1);
+      const offset = (first.getDay() + 6) % 7;
+      const start = new Date(year, month, 1 - offset);
+      const todayKey = localDateKey(new Date());
+      const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
+      let markup = days.map(day => `<div class="text-center text-[11px] font-bold uppercase tracking-wide text-slate-400 py-2">${day}</div>`).join('');
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + i);
+        const key = localDateKey(date);
+        const inMonth = date.getMonth() === month;
+        const events = agendaEvents.filter(event => event.date === key).sort((a,b) => (a.startTime || '').localeCompare(b.startTime || ''));
+        const chips = events.slice(0, 3).map(event =>
+          `<button type="button" onclick="editAgendaEvent('${escapeAgendaHtml(event.id)}')" class="block w-full text-left truncate rounded-md px-1.5 py-1 mb-1 text-[10px] sm:text-xs bg-violet-500/20 text-violet-200 border-l-2 border-violet-400 hover:bg-violet-500/30" title="${escapeAgendaHtml(event.title)} — ${escapeAgendaHtml(event.responsible)}">${escapeAgendaHtml(event.startTime || '')} ${escapeAgendaHtml(event.title)}<span class="opacity-80"> · ${escapeAgendaHtml(event.responsible)}</span></button>`
+        ).join('');
+        const more = events.length > 3 ? `<div class="text-[10px] text-slate-400">+ ${events.length - 3} autre(s)</div>` : '';
+        markup += `<div class="min-h-[112px] sm:min-h-[138px] p-1.5 border border-slate-800 rounded-lg ${inMonth ? 'bg-slate-900/70' : 'bg-slate-950/60 opacity-50'} ${key === todayKey ? 'ring-1 ring-violet-400' : ''}">
+          <button type="button" onclick="openNewAgendaEvent('${key}')" class="w-6 h-6 rounded-full text-xs font-semibold ${key === todayKey ? 'bg-violet-600 text-white' : 'text-slate-300 hover:bg-slate-700'}">${date.getDate()}</button>
+          <div class="mt-1">${chips}${more}</div>
+        </div>`;
+      }
+      grid.innerHTML = markup;
+      const upcoming = agendaEvents.filter(e => e.date >= todayKey).sort((a,b) => (a.date + (a.startTime || '')).localeCompare(b.date + (b.startTime || ''))).slice(0, 6);
+      document.getElementById('agenda-upcoming-list').innerHTML = upcoming.length
+        ? upcoming.map(e => `<button onclick="editAgendaEvent('${escapeAgendaHtml(e.id)}')" class="w-full text-left p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-violet-500/60"><div class="flex justify-between gap-3"><span class="font-semibold text-sm text-slate-100">${escapeAgendaHtml(e.title)}</span><span class="text-xs text-violet-300 whitespace-nowrap">${escapeAgendaHtml(e.date)} · ${escapeAgendaHtml(e.startTime)}</span></div><p class="text-xs text-slate-400 mt-1">${escapeAgendaHtml(e.responsible)}${e.location ? ' · ' + escapeAgendaHtml(e.location) : ''}</p></button>`).join('')
+        : '<p class="text-sm text-slate-500 p-3">Aucun agendamento futuro.</p>';
+      if (window.lucide) lucide.createIcons();
+    };
+
+    window.openNewAgendaEvent = function(dateKey = localDateKey(new Date())) {
+      editingAgendaId = null;
+      document.getElementById('agenda-event-form').reset();
+      document.getElementById('agenda-event-date').value = dateKey;
+      document.getElementById('agenda-event-modal-title').textContent = 'Nouvel agendamento';
+      document.getElementById('agenda-delete-btn').classList.add('hidden');
+      document.getElementById('agenda-event-modal').classList.remove('hidden');
+    };
+
+    window.editAgendaEvent = function(id) {
+      const event = agendaEvents.find(item => item.id === id);
+      if (!event) return;
+      editingAgendaId = id;
+      document.getElementById('agenda-event-title').value = event.title || '';
+      document.getElementById('agenda-event-responsible').value = event.responsible || '';
+      document.getElementById('agenda-event-date').value = event.date || '';
+      document.getElementById('agenda-event-start').value = event.startTime || '';
+      document.getElementById('agenda-event-end').value = event.endTime || '';
+      document.getElementById('agenda-event-location').value = event.location || '';
+      document.getElementById('agenda-event-description').value = event.description || '';
+      document.getElementById('agenda-event-modal-title').textContent = 'Modifier l’agendamento';
+      document.getElementById('agenda-delete-btn').classList.remove('hidden');
+      document.getElementById('agenda-event-modal').classList.remove('hidden');
+    };
+
+    window.closeAgendaEventModal = function() {
+      document.getElementById('agenda-event-modal').classList.add('hidden');
+    };
+
+    window.saveAgendaEvent = async function(e) {
+      e.preventDefault();
+      const title = document.getElementById('agenda-event-title').value.trim();
+      const responsible = document.getElementById('agenda-event-responsible').value.trim();
+      const date = document.getElementById('agenda-event-date').value;
+      const startTime = document.getElementById('agenda-event-start').value;
+      const endTime = document.getElementById('agenda-event-end').value;
+      if (!title || !responsible || !date || !startTime || !endTime) {
+        alert('Veuillez remplir tous les champs obligatoires.');
+        return;
+      }
+      if (endTime <= startTime) {
+        alert("L'heure de fin doit être postérieure à l'heure de début.");
+        return;
+      }
+      const payload = {
+        title, responsible, date, startTime, endTime,
+        location: document.getElementById('agenda-event-location').value.trim(),
+        description: document.getElementById('agenda-event-description').value.trim(),
+        createdBy: localStorage.getItem('cpas_agenda_creator') || 'Utilisateur ST',
+        updatedAt: Date.now()
+      };
+      try {
+        const id = editingAgendaId || ('agenda-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+        if (!editingAgendaId) payload.createdAt = Date.now();
+        await setDoc(doc(db, 'agenda', id), payload, { merge: true });
+        closeAgendaEventModal();
+      } catch (error) {
+        console.error(error);
+        alert("L'enregistrement a échoué. Vérifiez la connexion et les règles Firestore.");
+      }
+    };
+
+    window.deleteAgendaEvent = async function() {
+      if (!editingAgendaId || !confirm('Supprimer cet agendamento ?')) return;
+      try {
+        await deleteDoc(doc(db, 'agenda', editingAgendaId));
+        closeAgendaEventModal();
+      } catch (error) {
+        console.error(error);
+        alert("La suppression a échoué. Vérifiez les règles Firestore.");
+      }
+    };
+
 
     window.onload = function() {
       if (window.lucide) lucide.createIcons();
-      // Verifica no sessionStorage (que expira automaticamente ao fechar o separador)
-      if (sessionStorage.getItem('cpas_st_auth') === 'true') {
+      if (localStorage.getItem('cpas_st_auth') === 'true') {
         document.getElementById('auth-overlay').classList.add('hidden');
         showHubNavigation();
         startFirestoreSync();
-      } else {
-        document.getElementById('auth-overlay').classList.remove('hidden');
       }
     };
   </script>
 </head>
-<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden antialiased selection:bg-red-500 selection:text-white">
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden antialiased selection:bg-orange-500 selection:text-white">
 
-  <!-- CHRISTMAS INTRO OVERLAY -->
-  <div id="christmas-intro-overlay" class="fixed inset-0 z-[60] bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center hidden transition-opacity duration-700">
+  <!-- HALLOWEEN TRANSITION OVERLAY -->
+  <div id="halloween-intro-overlay" class="fixed inset-0 z-[60] bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center hidden transition-opacity duration-700">
     <div class="space-y-6 max-w-md w-full">
-      <div class="christmas-float text-6xl sm:text-7xl select-none">
-        🎄🎅🎁
-      </div>
+      <div class="halloween-float text-6xl sm:text-7xl select-none">🎃👻🦇</div>
       <div class="space-y-2">
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-red-500 christmas-glow tracking-wide">
-          Joyeux Noël & Bonnes Fêtes !
-        </h2>
-        <p class="text-xs sm:text-sm text-slate-300 font-medium">
-          Service Technique - CPAS Lessines
-        </p>
-        <p class="text-[11px] text-slate-400 italic">
-          "Que l'esprit de Noël apporte chaleur et sérénité dans tous nos couloirs !"
-        </p>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-orange-500 halloween-glow tracking-wide">Joyeux Halloween !</h2>
+        <p class="text-xs sm:text-sm text-slate-300 font-medium">Service Technique - CPAS Lessines</p>
+        <p class="text-[11px] text-slate-400 italic">"Attention aux courts-circuits... et aux esprits farceurs dans les couloirs !"</p>
       </div>
       <div class="w-48 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
-        <div class="h-full bg-red-600 rounded-full animate-[pulse_1s_infinite] w-full"></div>
+        <div class="h-full bg-orange-500 rounded-full animate-[pulse_1s_infinite] w-full"></div>
       </div>
     </div>
   </div>
@@ -734,7 +882,7 @@
           <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS Lessines" class="w-full h-full object-contain">
         </div>
         <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">CPAS LESSINES</h1>
-        <p class="text-xs sm:text-sm text-slate-300 font-medium">Connexion Unique - Service Technique 🎄</p>
+        <p class="text-xs sm:text-sm text-slate-300 font-medium">Connexion Unique - Service Technique 🎃</p>
       </div>
 
       <div id="auth-error-alert" class="hidden p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center space-x-2">
@@ -748,7 +896,7 @@
           <div class="relative">
             <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
             <input type="text" id="auth-username" required placeholder="st" autocomplete="username"
-              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors">
+              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
           </div>
         </div>
 
@@ -757,11 +905,11 @@
           <div class="relative">
             <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
             <input type="password" id="auth-password" required placeholder="••••••••" autocomplete="current-password"
-              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors">
+              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
           </div>
         </div>
 
-        <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-red-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
+        <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
           <i data-lucide="sparkles" class="w-4 h-4"></i>
           <span>Se Connecter</span>
         </button>
@@ -783,22 +931,22 @@
 
         <!-- FRASE MOTIVACIONAL DIÁRIA -->
         <div class="pt-2 px-2 sm:px-4 max-w-lg mx-auto">
-          <p id="daily-quote" class="text-xs sm:text-sm text-red-400 italic font-medium bg-slate-900/80 border border-red-500/30 py-2.5 px-3.5 rounded-2xl shadow-inner backdrop-blur-md">
+          <p id="daily-quote" class="text-xs sm:text-sm text-orange-400 italic font-medium bg-slate-900/80 border border-orange-500/30 py-2.5 px-3.5 rounded-2xl shadow-inner backdrop-blur-md">
             ✨ Chargement de la pensée du jour...
           </p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 text-left">
-        <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-red-500/40 hover:border-red-500 p-5 sm:p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-40 sm:h-56">
+        <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-orange-500/40 hover:border-orange-500 p-5 sm:p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-40 sm:h-56">
           <div class="flex items-center justify-between">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 group-hover:scale-110 transition-transform">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
               <i data-lucide="book-open" class="w-5 h-5 sm:w-6 sm:h-6"></i>
             </div>
-            <span class="text-[10px] sm:text-xs text-red-400 font-bold bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">Vue Complète</span>
+            <span class="text-[10px] sm:text-xs text-orange-400 font-bold bg-orange-500/10 px-2.5 py-1 rounded-full border border-orange-500/20">Vue Complète</span>
           </div>
           <div>
-            <h3 class="font-bold text-base sm:text-lg text-white mb-0.5 sm:mb-1 group-hover:text-red-400 transition-colors">Guide du métier</h3>
+            <h3 class="font-bold text-base sm:text-lg text-white mb-0.5 sm:mb-1 group-hover:text-orange-400 transition-colors">Guide du métier</h3>
             <p class="text-[11px] sm:text-xs text-slate-400 leading-relaxed">Accéder à toutes les pannes, fiches pas-à-pas et matériel.</p>
           </div>
         </button>
@@ -815,12 +963,75 @@
             <p class="text-[11px] sm:text-xs text-slate-400 leading-relaxed">Consulter les demandes rapides du terrain et l'historique complet.</p>
           </div>
         </button>
+        <button onclick="openAgenda()" class="sm:col-span-2 bg-slate-900/90 hover:bg-slate-800/90 border-2 border-violet-500/40 hover:border-violet-500 p-5 sm:p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-row items-center gap-4 text-left">
+          <div class="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/40 flex items-center justify-center text-violet-300 group-hover:scale-110 transition-transform shrink-0">
+            <i data-lucide="calendar-days" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-bold text-base sm:text-lg text-white mb-1 group-hover:text-violet-300 transition-colors">Agenda</h3>
+            <p class="text-[11px] sm:text-xs text-slate-400 leading-relaxed">Calendrier partagé des tâches planifiées de l'équipe.</p>
+          </div>
+          <i data-lucide="arrow-right" class="w-5 h-5 text-violet-300"></i>
+        </button>
       </div>
 
       <button onclick="handleSharedLogout()" class="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-red-400 transition-colors pt-2 sm:pt-4">
         <i data-lucide="log-out" class="w-4 h-4"></i>
         <span>Se déconnecter</span>
       </button>
+    </div>
+  </div>
+
+
+  <!-- AGENDA PARTAGEE -->
+  <section id="agenda-screen" class="fixed inset-0 z-40 hidden overflow-y-auto bg-slate-950">
+    <header class="sticky top-0 z-20 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-violet-500/20 text-violet-300 flex items-center justify-center"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
+        <div><h1 class="font-bold text-white">Agenda</h1><p class="text-xs text-slate-400">Calendrier partagé · CPAS Lessines</p></div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="closeAgenda()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold">Retour</button>
+        <button onclick="openNewAgendaEvent()" class="px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold"><i data-lucide="plus" class="w-4 h-4 inline mr-1"></i>Ajouter</button>
+      </div>
+    </header>
+    <main class="max-w-7xl mx-auto p-3 sm:p-6 space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <button onclick="changeAgendaMonth(-1)" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700" aria-label="Mois précédent"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+          <h2 id="agenda-month-title" class="text-lg sm:text-xl font-bold text-white capitalize min-w-40"></h2>
+          <button onclick="changeAgendaMonth(1)" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700" aria-label="Mois suivant"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+          <button onclick="goAgendaToday()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold">Aujourd'hui</button>
+        </div>
+        <p class="text-xs text-slate-400"><span class="inline-block w-2 h-2 rounded-full bg-violet-400 mr-1"></span>Agendamentos partilhés en direct</p>
+      </div>
+      <div class="grid grid-cols-7 gap-1 sm:gap-2" id="agenda-calendar-grid"></div>
+      <section class="space-y-3">
+        <div class="flex items-center justify-between"><h3 class="font-bold text-white">Prochains agendamentos</h3><span class="text-xs text-slate-500">Cliquez sur un événement pour le modifier</span></div>
+        <div id="agenda-upcoming-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2"></div>
+      </section>
+    </main>
+  </section>
+
+  <!-- FORMULAIRE AGENDA -->
+  <div id="agenda-event-modal" class="fixed inset-0 z-[70] hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+    <div class="w-full max-w-xl max-h-[95vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between"><h3 id="agenda-event-modal-title" class="font-bold text-white">Nouvel agendamento</h3><button onclick="closeAgendaEventModal()" class="p-2 text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+      <form id="agenda-event-form" onsubmit="saveAgendaEvent(event)" class="p-4 space-y-3">
+        <label class="block text-xs font-semibold text-slate-300">Titre de la tâche *<input id="agenda-event-title" required maxlength="120" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white" placeholder="Ex. Contrôle chaudière"></label>
+        <label class="block text-xs font-semibold text-slate-300">Nom du responsable *<input id="agenda-event-responsible" required maxlength="100" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white" placeholder="Nom et prénom"></label>
+        <label class="block text-xs font-semibold text-slate-300">Date *<input id="agenda-event-date" type="date" required class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white"></label>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="block text-xs font-semibold text-slate-300">Heure de début *<input id="agenda-event-start" type="time" required class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white"></label>
+          <label class="block text-xs font-semibold text-slate-300">Heure de fin *<input id="agenda-event-end" type="time" required class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white"></label>
+        </div>
+        <label class="block text-xs font-semibold text-slate-300">Lieu<input id="agenda-event-location" maxlength="120" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white" placeholder="Lieu de l'intervention (facultatif)"></label>
+        <label class="block text-xs font-semibold text-slate-300">Description / remarques<textarea id="agenda-event-description" rows="3" maxlength="1000" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white" placeholder="Détails complémentaires (facultatif)"></textarea></label>
+        <div class="flex flex-wrap justify-between gap-2 pt-2">
+          <button id="agenda-delete-btn" type="button" onclick="deleteAgendaEvent()" class="hidden px-4 py-2.5 rounded-lg bg-red-950 text-red-300 hover:bg-red-900 text-xs font-bold">Supprimer</button>
+          <div class="flex gap-2 ml-auto"><button type="button" onclick="closeAgendaEventModal()" class="px-4 py-2.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-semibold">Annuler</button><button type="submit" class="px-5 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold">Enregistrer</button></div>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -834,9 +1045,9 @@
         </div>
         <div class="min-w-0">
           <div class="flex items-center space-x-1.5 sm:space-x-2">
-            <h1 id="app-company-name" class="font-bold text-xs sm:text-base tracking-tight text-slate-100 truncate">CPAS LESSINES 🎄</h1>
-            <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 shrink-0">
-              <span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1 animate-pulse"></span>En Direct
+            <h1 id="app-company-name" class="font-bold text-xs sm:text-base tracking-tight text-slate-100 truncate">CPAS LESSINES 🎃</h1>
+            <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20 shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>En Direct
             </span>
           </div>
           <p id="current-view-label" class="text-[10px] sm:text-xs text-slate-400 font-medium truncate">Technicien ST</p>
@@ -854,7 +1065,7 @@
           <span class="inline">Tâche</span>
         </button>
 
-        <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1 bg-red-600 hover:bg-red-500 text-white px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-red-600/20 active:scale-95 transition-all">
+        <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1 bg-orange-600 hover:bg-orange-500 text-white px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
           <i data-lucide="plus" class="w-4 h-4"></i>
           <span class="hidden sm:inline">Nouvelle Astuce</span>
         </button>
@@ -866,12 +1077,12 @@
     </header>
 
     <!-- DIAGNOSTIC BANNER -->
-    <div id="diagnostic-banner" class="bg-red-500/10 border-b border-red-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-red-300">
+    <div id="diagnostic-banner" class="bg-orange-500/10 border-b border-orange-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-orange-300">
       <div class="flex items-center space-x-2 overflow-hidden">
-        <i data-lucide="sparkles" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 shrink-0"></i>
-        <span id="diagnostic-text" class="font-medium truncate">Mode Noël actif - Session synchronisée !</span>
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400 shrink-0"></i>
+        <span id="diagnostic-text" class="font-medium truncate">Mode Halloween actif - Session synchronisée !</span>
       </div>
-      <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-red-400 hover:text-white p-1">
+      <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-orange-400 hover:text-white p-1">
         <i data-lucide="x" class="w-3.5 h-3.5"></i>
       </button>
     </div>
@@ -885,13 +1096,13 @@
           <i data-lucide="search" class="w-4 h-4"></i>
         </div>
         <input type="text" id="search-input" placeholder="Rechercher une panne, chambre, technicien..." 
-          class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors shadow-sm">
+          class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
       </div>
 
       <!-- STATUS FILTER BAR -->
       <div id="status-filter-wrapper" class="flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto pb-1 scrollbar-none hidden">
         <span class="text-[11px] sm:text-xs font-bold text-slate-400 uppercase mr-1 shrink-0">Statut:</span>
-        <button onclick="filterStatus('all')" id="status-btn-all" class="bg-red-600 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition-all shrink-0">Tous</button>
+        <button onclick="filterStatus('all')" id="status-btn-all" class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition-all shrink-0">Tous</button>
         <button onclick="filterStatus('À faire')" id="status-btn-afaire" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0">🔴 À faire</button>
         <button onclick="filterStatus('En cours')" id="status-btn-encours" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0">🟠 En cours</button>
         <button onclick="filterStatus('Terminé')" id="status-btn-termine" class="bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0">🟢 Historique</button>
@@ -900,7 +1111,7 @@
       <!-- CATEGORIES FILTER -->
       <div id="categories-bar-wrapper" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto"></div>
-        <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-red-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
+        <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-orange-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
           <i data-lucide="settings-2" class="w-4 h-4"></i>
           <span>Gérer Catégories</span>
         </button>
@@ -990,7 +1201,7 @@
 
         <div>
           <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Description du problème / Demande</label>
-          <textarea id="afaire-desc" rows="3" required placeholder="Ex: Radiateur de la chambre ne chauffe pas assez." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+          <textarea id="afaire-desc" rows="3" required placeholder="Ex: La poignée de la fenêtre est cassée, la résidente demande de repasser." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
         </div>
 
         <div class="pt-2 flex justify-end space-x-2">
@@ -1009,11 +1220,11 @@
     <div id="drawer-content" class="bg-slate-900 border-t sm:border-t-0 sm:border-l border-slate-800 w-full sm:max-w-md md:max-w-lg h-[92vh] sm:h-full mt-auto sm:mt-0 rounded-t-3xl sm:rounded-none flex flex-col transform translate-y-full sm:translate-y-0 sm:translate-x-full transition-transform duration-300 shadow-2xl">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2">
-          <span id="modal-category" class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20"></span>
+          <span id="modal-category" class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20"></span>
           <span id="modal-time" class="text-xs text-slate-400 flex items-center"></span>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="openEditCurrentIssue()" class="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors" title="Modifier cette astuce">
+          <button onclick="openEditCurrentIssue()" class="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500/20 transition-colors" title="Modifier cette astuce">
             <i data-lucide="edit-3" class="w-4 h-4"></i>
           </button>
           <button onclick="closeDetailModal()" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
@@ -1027,7 +1238,7 @@
           <h2 id="modal-title" class="font-bold text-base sm:text-lg text-slate-100 leading-snug"></h2>
         </div>
 
-        <div id="modal-safety-container" class="p-3.5 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start space-x-3 text-red-400">
+        <div id="modal-safety-container" class="p-3.5 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-start space-x-3 text-orange-400">
           <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
           <div class="text-xs leading-relaxed">
             <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
@@ -1044,13 +1255,13 @@
 
         <div class="space-y-2.5">
           <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider flex items-center">
-            <i data-lucide="briefcase" class="w-4 h-4 mr-2 text-red-400"></i> Matériel Requis
+            <i data-lucide="briefcase" class="w-4 h-4 mr-2 text-orange-400"></i> Matériel Requis
           </h3>
           <div id="materials-display-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
         </div>
 
         <div class="pt-2">
-          <button onclick="openInstructionsModal()" class="w-full py-3.5 px-4 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-bold text-xs sm:text-sm flex items-center justify-between transition-all active:scale-95">
+          <button onclick="openInstructionsModal()" class="w-full py-3.5 px-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold text-xs sm:text-sm flex items-center justify-between transition-all active:scale-95">
             <span class="flex items-center space-x-2">
               <i data-lucide="list-checks" class="w-4 h-4"></i>
               <span>Consulter la Procédure Pas-à-Pas</span>
@@ -1074,7 +1285,7 @@
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] my-auto">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
-          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-red-400"></i> Procédure d'Intervention
+          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-orange-400"></i> Procédure d'Intervention
         </h3>
         <button onclick="closeInstructionsModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -1092,7 +1303,7 @@
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-auto">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <h3 id="modal-form-title" class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
-          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-red-400"></i> Ajouter une Nouvelle Astuce
+          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-orange-400"></i> Ajouter une Nouvelle Astuce
         </h3>
         <button onclick="closeAddIssueModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -1104,22 +1315,22 @@
         
         <div>
           <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Titre de l'Astuce / Intervention</label>
-          <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-red-500">
+          <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold">Catégorie</label>
-              <button type="button" onclick="openCategoryManager()" class="text-[10px] text-red-400 hover:underline flex items-center">
+              <button type="button" onclick="openCategoryManager()" class="text-[10px] text-orange-400 hover:underline flex items-center">
                 <i data-lucide="settings" class="w-3 h-3 mr-1"></i> Gérer
               </button>
             </div>
-            <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-red-500"></select>
+            <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500"></select>
           </div>
           <div>
             <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Difficulté</label>
-            <select id="custom-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-red-500">
+            <select id="custom-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500">
               <option value="Facile">Facile</option>
               <option value="Moyenne">Moyenne</option>
               <option value="Difficile">Difficile</option>
@@ -1129,17 +1340,17 @@
 
         <div>
           <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Matériel Requis (séparé par des virgules)</label>
-          <input type="text" id="custom-materials" required placeholder="Ex: Tournevis, Ampoule LED E27, Escabeau" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-red-500">
+          <input type="text" id="custom-materials" required placeholder="Ex: Tournevis, Ampoule LED E27, Escabeau" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500">
         </div>
 
         <div>
           <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étapes de l'Intervention (une par ligne)</label>
-          <textarea id="custom-steps" rows="3" required placeholder="Étape 1&#10;Étape 2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-red-500"></textarea>
+          <textarea id="custom-steps" rows="3" required placeholder="Étape 1&#10;Étape 2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500"></textarea>
         </div>
 
         <div class="pt-2 flex justify-end space-x-2">
           <button type="button" onclick="closeAddIssueModal()" class="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
-          <button type="submit" id="form-submit-btn" class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-red-600/20 active:scale-95">Créer l'Astuce</button>
+          <button type="submit" id="form-submit-btn" class="px-5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-600/20 active:scale-95">Créer l'Astuce</button>
         </div>
       </form>
     </div>
@@ -1150,7 +1361,7 @@
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
       <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0">
         <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
-          <i data-lucide="folder-cog" class="w-4 h-4 mr-2 text-red-400"></i> Gérer les Catégories
+          <i data-lucide="folder-cog" class="w-4 h-4 mr-2 text-orange-400"></i> Gérer les Catégories
         </h3>
         <button onclick="closeCategoryManager()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -1159,8 +1370,8 @@
 
       <div class="p-4 space-y-4">
         <div class="flex space-x-2">
-          <input type="text" id="new-category-input" placeholder="Nouvelle catégorie..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-red-500">
-          <button onclick="addNewCategory()" class="px-3.5 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs sm:text-sm active:scale-95">Ajouter</button>
+          <input type="text" id="new-category-input" placeholder="Nouvelle catégorie..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
+          <button onclick="addNewCategory()" class="px-3.5 py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl text-xs sm:text-sm active:scale-95">Ajouter</button>
         </div>
 
         <div id="categories-management-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
