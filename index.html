@@ -39,8 +39,23 @@
       0%, 100% { text-shadow: 0 0 10px rgba(249, 115, 22, 0.6), 0 0 20px rgba(249, 115, 22, 0.4); }
       50% { text-shadow: 0 0 20px rgba(249, 115, 22, 0.9), 0 0 30px rgba(239, 68, 68, 0.8); }
     }
-    .halloween-float { animation: float 3s ease-in-out infinite; }
-    .halloween-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    @keyframes snow-drift {
+      0% { transform: translateY(-12vh) translateX(0); opacity: 0; }
+      15% { opacity: .8; }
+      100% { transform: translateY(112vh) translateX(28px); opacity: .15; }
+    }
+    .christmas-float { animation: float 3s ease-in-out infinite; }
+    .christmas-glow { animation: christmas-glow 2s ease-in-out infinite; }
+    @keyframes christmas-glow {
+      0%, 100% { text-shadow: 0 0 10px rgba(16,185,129,.45), 0 0 20px rgba(220,38,38,.25); }
+      50% { text-shadow: 0 0 20px rgba(16,185,129,.8), 0 0 30px rgba(220,38,38,.55); }
+    }
+    .christmas-snow { position:absolute; top:-12vh; color:#e2e8f0; pointer-events:none; animation:snow-drift linear infinite; }
+    .christmas-snow:nth-child(1) { left:8%; animation-duration:9s; }
+    .christmas-snow:nth-child(2) { left:25%; animation-duration:12s; animation-delay:2s; }
+    .christmas-snow:nth-child(3) { left:48%; animation-duration:10s; animation-delay:1s; }
+    .christmas-snow:nth-child(4) { left:69%; animation-duration:13s; animation-delay:3s; }
+    .christmas-snow:nth-child(5) { left:88%; animation-duration:11s; animation-delay:1.5s; }
 
     /* Touch Friendly Enhancements */
     input, select, textarea {
@@ -126,8 +141,8 @@
       }
     ];
 
-    function playHalloweenIntro(callback) {
-      const introOverlay = document.getElementById('halloween-intro-overlay');
+    function playNoëlIntro(callback) {
+      const introOverlay = document.getElementById('christmas-intro-overlay');
       introOverlay.classList.remove('hidden');
       introOverlay.style.opacity = '1';
 
@@ -150,7 +165,7 @@
       if (userVal === HARDCODED_USER && passVal === HARDCODED_PASS) {
         localStorage.setItem('cpas_st_auth', 'true');
         document.getElementById('auth-overlay').classList.add('hidden');
-        playHalloweenIntro(() => {
+        playNoëlIntro(() => {
           showHubNavigation();
           startFirestoreSync();
         });
@@ -270,11 +285,11 @@
       const container = document.getElementById('categories-filter-container');
       if (!container) return;
 
-      let html = `<button onclick="filterCategory('todos')" class="cat-btn ${currentCategory === 'todos' ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0">Tous</button>`;
+      let html = `<button onclick="filterCategory('todos')" class="cat-btn ${currentCategory === 'todos' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0">Tous</button>`;
 
       categories.forEach(cat => {
         const isActive = currentCategory === cat.id;
-        html += `<button onclick="filterCategory('${cat.id}')" class="cat-btn ${isActive ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0">${cat.label}</button>`;
+        html += `<button onclick="filterCategory('${cat.id}')" class="cat-btn ${isActive ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'} px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0">${cat.label}</button>`;
       });
 
       container.innerHTML = html;
@@ -341,6 +356,18 @@
       renderCategorySelect();
     };
 
+    function updateAgendaSyncBadge(status, label) {
+      const badge = document.getElementById('agenda-sync-badge');
+      if (!badge) return;
+      const styles = {
+        online: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+        pending: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+        offline: 'bg-red-500/10 text-red-400 border-red-500/20'
+      };
+      badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium border shrink-0 ' + (styles[status] || styles.pending);
+      badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full mr-1 animate-pulse"></span>' + escapeAgendaHtml(label || 'Connexion');
+    }
+
     window.updateSyncBadge = function(status, text) {
       const badge = document.getElementById('sync-badge');
       const diagBanner = document.getElementById('diagnostic-banner');
@@ -349,10 +376,10 @@
       if (!badge) return;
 
       if (status === 'online') {
-        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20 shrink-0";
-        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>${text}`;
-        if (diagText) diagText.textContent = "🎃 Session 'st' active & Base de données en direct !";
-        if (diagBanner) diagBanner.className = "bg-orange-500/10 border-b border-orange-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-orange-300";
+        badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>${text}`;
+        if (diagText) diagText.textContent = "🎄 Session 'st' active & Base de données en direct !";
+        if (diagBanner) diagBanner.className = "bg-emerald-500/10 border-b border-emerald-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-emerald-300";
       } else if (status === 'error') {
         badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 shrink-0";
         badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1"></span>${text}`;
@@ -396,9 +423,11 @@
 
     function startFirestoreSync() {
       window.updateSyncBadge('pending', 'Synchronisation...');
+      updateAgendaSyncBadge('pending', 'Synchronisation...');
 
       unsubscribeSync = onSnapshot(tasksCollection, (snapshot) => {
         window.updateSyncBadge('online', 'En Direct');
+        updateAgendaSyncBadge('online', 'En Direct');
 
         const cloudIssues = [];
         snapshot.forEach((docSnap) => {
@@ -490,14 +519,14 @@
               </div>
             </div>`;
         } else {
-          card.className = "bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-orange-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 cursor-pointer transition-all group";
+          card.className = "bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 cursor-pointer transition-all group";
           card.innerHTML = `
             <div onclick="openDetailModal('${issue.id}')">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">${issue.category}</span>
-                <span class="text-xs text-slate-400 flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1 text-orange-400"></i>${issue.time}</span>
+                <span class="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${issue.category}</span>
+                <span class="text-xs text-slate-400 flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1 text-emerald-400"></i>${issue.time}</span>
               </div>
-              <h3 class="font-bold text-sm sm:text-base text-slate-100 group-hover:text-orange-400 transition-colors mb-1">${issue.title}</h3>
+              <h3 class="font-bold text-sm sm:text-base text-slate-100 group-hover:text-emerald-400 transition-colors mb-1">${issue.title}</h3>
               <p class="text-xs text-slate-400 font-medium">${issue.difficulty}</p>
             </div>`;
         }
@@ -575,7 +604,7 @@
       currentIssueId = id;
 
       document.getElementById('modal-category').textContent = issue.category;
-      document.getElementById('modal-time').innerHTML = `<i data-lucide="clock" class="w-3 h-3 mr-1 text-orange-400"></i>${issue.time} • ${issue.difficulty}`;
+      document.getElementById('modal-time').innerHTML = `<i data-lucide="clock" class="w-3 h-3 mr-1 text-emerald-400"></i>${issue.time} • ${issue.difficulty}`;
       document.getElementById('modal-title').textContent = issue.title;
       document.getElementById('modal-safety').textContent = issue.safety;
       
@@ -589,7 +618,7 @@
       const matContainer = document.getElementById('materials-display-container');
       matContainer.innerHTML = (issue.materials || []).map(m => `
         <div class="flex items-center space-x-2 p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300">
-          <i data-lucide="check" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+          <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
           <span>${m}</span>
         </div>
       `).join('');
@@ -623,7 +652,7 @@
     window.openAddIssueModal = function() {
       document.getElementById('add-issue-form').reset();
       document.getElementById('editing-issue-id').value = '';
-      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-orange-400"></i> Ajouter une Nouvelle Astuce`;
+      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-emerald-400"></i> Ajouter une Nouvelle Astuce`;
       document.getElementById('form-submit-btn').textContent = "Créer l'Astuce";
       window.renderCategorySelect();
       document.getElementById('add-issue-modal').classList.remove('hidden');
@@ -645,7 +674,7 @@
       document.getElementById('custom-materials').value = (issue.materials || []).join(', ');
       document.getElementById('custom-steps').value = (issue.steps || []).join('\n');
 
-      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 mr-2 text-orange-400"></i> Modifier l'Astuce`;
+      document.getElementById('modal-form-title').innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 mr-2 text-emerald-400"></i> Modifier l'Astuce`;
       document.getElementById('form-submit-btn').textContent = "Enregistrer les Modifications";
       document.getElementById('add-issue-modal').classList.remove('hidden');
     };
@@ -857,19 +886,20 @@
     };
   </script>
 </head>
-<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden antialiased selection:bg-orange-500 selection:text-white">
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden antialiased selection:bg-emerald-500 selection:text-white">
 
   <!-- HALLOWEEN TRANSITION OVERLAY -->
-  <div id="halloween-intro-overlay" class="fixed inset-0 z-[60] bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center hidden transition-opacity duration-700">
-    <div class="space-y-6 max-w-md w-full">
-      <div class="halloween-float text-6xl sm:text-7xl select-none">🎃👻🦇</div>
+  <div id="christmas-intro-overlay" class="fixed inset-0 z-[60] bg-gradient-to-b from-red-950/95 via-slate-950/95 to-emerald-950/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center hidden transition-opacity duration-700 overflow-hidden">
+    <div class="christmas-snow text-2xl">❄</div><div class="christmas-snow text-xl">❄</div><div class="christmas-snow text-3xl">❄</div><div class="christmas-snow text-xl">❄</div><div class="christmas-snow text-2xl">❄</div>
+    <div class="space-y-6 max-w-md w-full relative z-10">
+      <div class="christmas-float text-6xl sm:text-7xl select-none">🎄🎅🏻❄️</div>
       <div class="space-y-2">
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-orange-500 halloween-glow tracking-wide">Joyeux Halloween !</h2>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-emerald-500 christmas-glow tracking-wide">Joyeuses fêtes !</h2>
         <p class="text-xs sm:text-sm text-slate-300 font-medium">Service Technique - CPAS Lessines</p>
-        <p class="text-[11px] text-slate-400 italic">"Attention aux courts-circuits... et aux esprits farceurs dans les couloirs !"</p>
+        <p class="text-[11px] text-slate-400 italic">"Toute l’équipe du Service Technique vous souhaite de joyeuses fêtes !"</p>
       </div>
       <div class="w-48 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
-        <div class="h-full bg-orange-500 rounded-full animate-[pulse_1s_infinite] w-full"></div>
+        <div class="h-full bg-gradient-to-r from-red-500 to-emerald-400 rounded-full animate-[pulse_1s_infinite] w-full"></div>
       </div>
     </div>
   </div>
@@ -882,7 +912,7 @@
           <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS Lessines" class="w-full h-full object-contain">
         </div>
         <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">CPAS LESSINES</h1>
-        <p class="text-xs sm:text-sm text-slate-300 font-medium">Connexion Unique - Service Technique 🎃</p>
+        <p class="text-xs sm:text-sm text-slate-300 font-medium">Connexion Unique - Service Technique 🎄</p>
       </div>
 
       <div id="auth-error-alert" class="hidden p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center space-x-2">
@@ -896,7 +926,7 @@
           <div class="relative">
             <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
             <input type="text" id="auth-username" required placeholder="st" autocomplete="username"
-              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
+              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors">
           </div>
         </div>
 
@@ -905,11 +935,11 @@
           <div class="relative">
             <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
             <input type="password" id="auth-password" required placeholder="••••••••" autocomplete="current-password"
-              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors">
+              class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors">
           </div>
         </div>
 
-        <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
+        <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
           <i data-lucide="sparkles" class="w-4 h-4"></i>
           <span>Se Connecter</span>
         </button>
@@ -931,22 +961,22 @@
 
         <!-- FRASE MOTIVACIONAL DIÁRIA -->
         <div class="pt-2 px-2 sm:px-4 max-w-lg mx-auto">
-          <p id="daily-quote" class="text-xs sm:text-sm text-orange-400 italic font-medium bg-slate-900/80 border border-orange-500/30 py-2.5 px-3.5 rounded-2xl shadow-inner backdrop-blur-md">
+          <p id="daily-quote" class="text-xs sm:text-sm text-emerald-400 italic font-medium bg-slate-900/80 border border-emerald-500/30 py-2.5 px-3.5 rounded-2xl shadow-inner backdrop-blur-md">
             ✨ Chargement de la pensée du jour...
           </p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 text-left">
-        <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-orange-500/40 hover:border-orange-500 p-5 sm:p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-40 sm:h-56">
+        <button onclick="navigateToView('all')" class="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-emerald-500/40 hover:border-emerald-500 p-5 sm:p-6 rounded-3xl transition-all shadow-2xl active:scale-95 group flex flex-col justify-between h-40 sm:h-56">
           <div class="flex items-center justify-between">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
               <i data-lucide="book-open" class="w-5 h-5 sm:w-6 sm:h-6"></i>
             </div>
-            <span class="text-[10px] sm:text-xs text-orange-400 font-bold bg-orange-500/10 px-2.5 py-1 rounded-full border border-orange-500/20">Vue Complète</span>
+            <span class="text-[10px] sm:text-xs text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Vue Complète</span>
           </div>
           <div>
-            <h3 class="font-bold text-base sm:text-lg text-white mb-0.5 sm:mb-1 group-hover:text-orange-400 transition-colors">Guide du métier</h3>
+            <h3 class="font-bold text-base sm:text-lg text-white mb-0.5 sm:mb-1 group-hover:text-emerald-400 transition-colors">Guide du métier</h3>
             <p class="text-[11px] sm:text-xs text-slate-400 leading-relaxed">Accéder à toutes les pannes, fiches pas-à-pas et matériel.</p>
           </div>
         </button>
@@ -985,12 +1015,23 @@
 
   <!-- AGENDA PARTAGEE -->
   <section id="agenda-screen" class="fixed inset-0 z-40 hidden overflow-y-auto bg-slate-950">
-    <header class="sticky top-0 z-20 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-violet-500/20 text-violet-300 flex items-center justify-center"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
-        <div><h1 class="font-bold text-white">Agenda</h1><p class="text-xs text-slate-400">Calendrier partagé · CPAS Lessines</p></div>
+    <header class="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm p-1 shrink-0">
+          <img src="https://raw.githubusercontent.com/cpaslessines/ServiceTecnique/d815ff2acd67460ed5314cc3059a1dfd682a7d0c/cpas.png" alt="Logo CPAS Lessines" class="w-full h-full object-contain">
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center flex-wrap gap-x-1.5 sm:gap-x-2">
+            <h1 class="font-bold text-xs sm:text-base tracking-tight text-slate-100 whitespace-nowrap">CPAS LESSINES</h1>
+            <span class="text-base sm:text-lg" aria-label="Sapin de Noël" title="Mode Noël">🎄</span>
+            <span id="agenda-sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>En Direct
+            </span>
+          </div>
+          <p class="text-[10px] sm:text-xs text-slate-400 font-medium truncate">Technicien ST <span class="mx-1 text-slate-600">|</span> Agenda</p>
+        </div>
       </div>
-      <div class="flex gap-2">
+      <div class="flex gap-2 shrink-0">
         <button onclick="closeAgenda()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold">Retour</button>
         <button onclick="openNewAgendaEvent()" class="px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold"><i data-lucide="plus" class="w-4 h-4 inline mr-1"></i>Ajouter</button>
       </div>
@@ -1045,9 +1086,9 @@
         </div>
         <div class="min-w-0">
           <div class="flex items-center space-x-1.5 sm:space-x-2">
-            <h1 id="app-company-name" class="font-bold text-xs sm:text-base tracking-tight text-slate-100 truncate">CPAS LESSINES 🎃</h1>
-            <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20 shrink-0">
-              <span class="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1 animate-pulse"></span>En Direct
+            <h1 id="app-company-name" class="font-bold text-xs sm:text-base tracking-tight text-slate-100 truncate">CPAS LESSINES 🎄</h1>
+            <span id="sync-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>En Direct
             </span>
           </div>
           <p id="current-view-label" class="text-[10px] sm:text-xs text-slate-400 font-medium truncate">Technicien ST</p>
@@ -1065,7 +1106,7 @@
           <span class="inline">Tâche</span>
         </button>
 
-        <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1 bg-orange-600 hover:bg-orange-500 text-white px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-orange-600/20 active:scale-95 transition-all">
+        <button onclick="openAddIssueModal()" id="btn-nouvelle-tache" class="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">
           <i data-lucide="plus" class="w-4 h-4"></i>
           <span class="hidden sm:inline">Nouvelle Astuce</span>
         </button>
@@ -1077,12 +1118,12 @@
     </header>
 
     <!-- DIAGNOSTIC BANNER -->
-    <div id="diagnostic-banner" class="bg-orange-500/10 border-b border-orange-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-orange-300">
+    <div id="diagnostic-banner" class="bg-emerald-500/10 border-b border-emerald-500/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs flex items-center justify-between text-emerald-300">
       <div class="flex items-center space-x-2 overflow-hidden">
-        <i data-lucide="sparkles" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400 shrink-0"></i>
-        <span id="diagnostic-text" class="font-medium truncate">Mode Halloween actif - Session synchronisée !</span>
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0"></i>
+        <span id="diagnostic-text" class="font-medium truncate">Mode Noël actif - Session synchronisée !</span>
       </div>
-      <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-orange-400 hover:text-white p-1">
+      <button onclick="document.getElementById('diagnostic-banner').classList.add('hidden')" class="text-emerald-400 hover:text-white p-1">
         <i data-lucide="x" class="w-3.5 h-3.5"></i>
       </button>
     </div>
@@ -1096,7 +1137,7 @@
           <i data-lucide="search" class="w-4 h-4"></i>
         </div>
         <input type="text" id="search-input" placeholder="Rechercher une panne, chambre, technicien..." 
-          class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors shadow-sm">
+          class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors shadow-sm">
       </div>
 
       <!-- STATUS FILTER BAR -->
@@ -1111,7 +1152,7 @@
       <!-- CATEGORIES FILTER -->
       <div id="categories-bar-wrapper" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div id="categories-filter-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none w-full sm:w-auto"></div>
-        <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-orange-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
+        <button onclick="openCategoryManager()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0 shadow-sm active:scale-95">
           <i data-lucide="settings-2" class="w-4 h-4"></i>
           <span>Gérer Catégories</span>
         </button>
@@ -1220,11 +1261,11 @@
     <div id="drawer-content" class="bg-slate-900 border-t sm:border-t-0 sm:border-l border-slate-800 w-full sm:max-w-md md:max-w-lg h-[92vh] sm:h-full mt-auto sm:mt-0 rounded-t-3xl sm:rounded-none flex flex-col transform translate-y-full sm:translate-y-0 sm:translate-x-full transition-transform duration-300 shadow-2xl">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2">
-          <span id="modal-category" class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20"></span>
+          <span id="modal-category" class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"></span>
           <span id="modal-time" class="text-xs text-slate-400 flex items-center"></span>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="openEditCurrentIssue()" class="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500/20 transition-colors" title="Modifier cette astuce">
+          <button onclick="openEditCurrentIssue()" class="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors" title="Modifier cette astuce">
             <i data-lucide="edit-3" class="w-4 h-4"></i>
           </button>
           <button onclick="closeDetailModal()" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 transition-colors">
@@ -1238,7 +1279,7 @@
           <h2 id="modal-title" class="font-bold text-base sm:text-lg text-slate-100 leading-snug"></h2>
         </div>
 
-        <div id="modal-safety-container" class="p-3.5 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-start space-x-3 text-orange-400">
+        <div id="modal-safety-container" class="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start space-x-3 text-emerald-400">
           <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></i>
           <div class="text-xs leading-relaxed">
             <span class="font-bold block mb-0.5">Consigne de Sécurité :</span>
@@ -1255,13 +1296,13 @@
 
         <div class="space-y-2.5">
           <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider flex items-center">
-            <i data-lucide="briefcase" class="w-4 h-4 mr-2 text-orange-400"></i> Matériel Requis
+            <i data-lucide="briefcase" class="w-4 h-4 mr-2 text-emerald-400"></i> Matériel Requis
           </h3>
           <div id="materials-display-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
         </div>
 
         <div class="pt-2">
-          <button onclick="openInstructionsModal()" class="w-full py-3.5 px-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold text-xs sm:text-sm flex items-center justify-between transition-all active:scale-95">
+          <button onclick="openInstructionsModal()" class="w-full py-3.5 px-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-bold text-xs sm:text-sm flex items-center justify-between transition-all active:scale-95">
             <span class="flex items-center space-x-2">
               <i data-lucide="list-checks" class="w-4 h-4"></i>
               <span>Consulter la Procédure Pas-à-Pas</span>
@@ -1285,7 +1326,7 @@
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] my-auto">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
-          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-orange-400"></i> Procédure d'Intervention
+          <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-emerald-400"></i> Procédure d'Intervention
         </h3>
         <button onclick="closeInstructionsModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -1303,7 +1344,7 @@
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-auto">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <h3 id="modal-form-title" class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
-          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-orange-400"></i> Ajouter une Nouvelle Astuce
+          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-emerald-400"></i> Ajouter une Nouvelle Astuce
         </h3>
         <button onclick="closeAddIssueModal()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -1315,22 +1356,22 @@
         
         <div>
           <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Titre de l'Astuce / Intervention</label>
-          <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500">
+          <input type="text" id="custom-title" required placeholder="Ex: Remplacement ampoule corridor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-emerald-500">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold">Catégorie</label>
-              <button type="button" onclick="openCategoryManager()" class="text-[10px] text-orange-400 hover:underline flex items-center">
+              <button type="button" onclick="openCategoryManager()" class="text-[10px] text-emerald-400 hover:underline flex items-center">
                 <i data-lucide="settings" class="w-3 h-3 mr-1"></i> Gérer
               </button>
             </div>
-            <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500"></select>
+            <select id="custom-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-emerald-500"></select>
           </div>
           <div>
             <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Difficulté</label>
-            <select id="custom-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500">
+            <select id="custom-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-emerald-500">
               <option value="Facile">Facile</option>
               <option value="Moyenne">Moyenne</option>
               <option value="Difficile">Difficile</option>
@@ -1340,17 +1381,17 @@
 
         <div>
           <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Matériel Requis (séparé par des virgules)</label>
-          <input type="text" id="custom-materials" required placeholder="Ex: Tournevis, Ampoule LED E27, Escabeau" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500">
+          <input type="text" id="custom-materials" required placeholder="Ex: Tournevis, Ampoule LED E27, Escabeau" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-emerald-500">
         </div>
 
         <div>
           <label class="block text-[10px] sm:text-xs text-slate-400 uppercase font-bold mb-1">Étapes de l'Intervention (une par ligne)</label>
-          <textarea id="custom-steps" rows="3" required placeholder="Étape 1&#10;Étape 2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-orange-500"></textarea>
+          <textarea id="custom-steps" rows="3" required placeholder="Étape 1&#10;Étape 2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
         </div>
 
         <div class="pt-2 flex justify-end space-x-2">
           <button type="button" onclick="closeAddIssueModal()" class="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-medium">Annuler</button>
-          <button type="submit" id="form-submit-btn" class="px-5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-600/20 active:scale-95">Créer l'Astuce</button>
+          <button type="submit" id="form-submit-btn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20 active:scale-95">Créer l'Astuce</button>
         </div>
       </form>
     </div>
@@ -1361,7 +1402,7 @@
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
       <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0">
         <h3 class="font-bold text-xs sm:text-sm text-slate-100 flex items-center">
-          <i data-lucide="folder-cog" class="w-4 h-4 mr-2 text-orange-400"></i> Gérer les Catégories
+          <i data-lucide="folder-cog" class="w-4 h-4 mr-2 text-emerald-400"></i> Gérer les Catégories
         </h3>
         <button onclick="closeCategoryManager()" class="p-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -1370,8 +1411,8 @@
 
       <div class="p-4 space-y-4">
         <div class="flex space-x-2">
-          <input type="text" id="new-category-input" placeholder="Nouvelle catégorie..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-orange-500">
-          <button onclick="addNewCategory()" class="px-3.5 py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl text-xs sm:text-sm active:scale-95">Ajouter</button>
+          <input type="text" id="new-category-input" placeholder="Nouvelle catégorie..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+          <button onclick="addNewCategory()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs sm:text-sm active:scale-95">Ajouter</button>
         </div>
 
         <div id="categories-management-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
